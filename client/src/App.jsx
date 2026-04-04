@@ -678,7 +678,10 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   const [category, setCategory] = useState("all");
   const [therapeuticClass, setTherapeuticClass] = useState("all");
   const [cart, setCart] = useState([]);
-  const [error, setError] = useState("");
+  const [pageError, setPageError] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [driverError, setDriverError] = useState("");
+  const [pharmacyError, setPharmacyError] = useState("");
   const [driverModalOpen, setDriverModalOpen] = useState(false);
   const [driverForm, setDriverForm] = useState(emptyDriverApplication);
   const [driverSubmitting, setDriverSubmitting] = useState(false);
@@ -706,7 +709,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         setCatalog(catalogData.filter((item) => item.is_active));
         setSponsors(sponsorData.filter((item) => item.is_active));
       })
-      .catch((loadError) => setError(loadError.message));
+      .catch((loadError) => setPageError(loadError.message));
   }, []);
 
   const classOptions = useMemo(() => {
