@@ -247,6 +247,7 @@ const legacyColumnAliases = {
     nom: "name",
     responsable: "manager_name",
     telephone: "phone",
+    tel: "phone",
     code_postal: "postal_code",
     localisation: "area",
     zone: "zone_name",
