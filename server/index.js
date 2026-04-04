@@ -221,6 +221,68 @@ const requiredTableColumns = {
   }
 };
 
+const legacyColumnAliases = {
+  sponsors: {
+    nom: "name",
+    slogan: "slogan",
+    logo: "logo",
+    type: "type",
+    site_web: "website",
+    actif: "is_active"
+  },
+  patients: {
+    prenom: "first_name",
+    nom: "last_name",
+    telephone: "phone",
+    date_naissance: "date_of_birth",
+    sexe: "sex",
+    code_postal: "postal_code",
+    localisation: "area",
+    antecedents: "conditions",
+    allergies: "allergies",
+    notes: "notes",
+    actif: "status"
+  },
+  pharmacies: {
+    nom: "name",
+    responsable: "manager_name",
+    telephone: "phone",
+    code_postal: "postal_code",
+    localisation: "area",
+    zone: "zone_name",
+    horaires: "opening_hours",
+    actif: "status"
+  },
+  drivers: {
+    prenom: "first_name",
+    nom: "last_name",
+    telephone: "phone",
+    zone: "zone_name",
+    vehicule: "vehicle",
+    actif: "status",
+    revenus: "revenue"
+  },
+  users: {
+    prenom: "first_name",
+    nom: "last_name",
+    telephone: "phone",
+    mot_de_passe: "password",
+    indice_mot_de_passe: "password_hint",
+    actif: "status"
+  },
+  catalog_items: {
+    produit: "name",
+    categorie: "category",
+    forme: "form",
+    unite: "unit",
+    prix: "price",
+    reference: "reference",
+    image_url: "image",
+    contre_indications: "contraindications",
+    actif: "is_active"
+  }
+};
+
 const defaultWhatsappTemplates = {
   confirmation: "Bonjour, votre commande PandaMed est confirmee.",
   en_route: "Bonjour, votre commande est en route.",
@@ -517,21 +579,34 @@ async function ensureRequiredSchema() {
     }
   }
 
-  await ensureLegacySponsorsCompatibility();
+  await ensureLegacyColumnCompatibility();
 }
 
-async function ensureLegacySponsorsCompatibility() {
-  const columns = await all("PRAGMA table_info(sponsors)");
-  const hasNom = columns.some((column) => column.name === "nom");
-  if (!hasNom) return;
+async function ensureLegacyColumnCompatibility() {
+  for (const [tableName, aliasMap] of Object.entries(legacyColumnAliases)) {
+    const columns = await all(`PRAGMA table_info(${tableName})`);
+    const columnNames = new Set(columns.map((column) => column.name));
 
-  await run("UPDATE sponsors SET name = COALESCE(name, nom) WHERE name IS NULL AND nom IS NOT NULL");
-  await run("UPDATE sponsors SET nom = COALESCE(nom, name) WHERE nom IS NULL AND name IS NOT NULL");
+    for (const [legacyColumn, canonicalColumn] of Object.entries(aliasMap)) {
+      if (!columnNames.has(legacyColumn) || !columnNames.has(canonicalColumn)) continue;
 
-  try {
-    await run("ALTER TABLE sponsors ALTER COLUMN nom DROP NOT NULL");
-  } catch {
-    // Ignore si la contrainte n'existe pas deja ou si le schema ne le permet pas.
+      await run(
+        `UPDATE ${tableName}
+         SET ${canonicalColumn} = COALESCE(${canonicalColumn}, ${legacyColumn})
+         WHERE ${canonicalColumn} IS NULL AND ${legacyColumn} IS NOT NULL`
+      );
+      await run(
+        `UPDATE ${tableName}
+         SET ${legacyColumn} = COALESCE(${legacyColumn}, ${canonicalColumn})
+         WHERE ${legacyColumn} IS NULL AND ${canonicalColumn} IS NOT NULL`
+      );
+
+      try {
+        await run(`ALTER TABLE ${tableName} ALTER COLUMN ${legacyColumn} DROP NOT NULL`);
+      } catch {
+        // Ignore si la contrainte n'existe pas ou si la colonne accepte deja NULL.
+      }
+    }
   }
 }
 
