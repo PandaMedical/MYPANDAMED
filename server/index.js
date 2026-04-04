@@ -280,6 +280,40 @@ const legacyColumnAliases = {
   }
 };
 
+const seedLookupConfig = {
+  users: [
+    ["email"],
+    ["phone"]
+  ],
+  sponsors: [
+    ["name"],
+    ["nom"]
+  ],
+  patients: [
+    ["phone"],
+    ["tel"],
+    ["email"]
+  ],
+  pharmacies: [
+    ["name"],
+    ["nom"],
+    ["phone"],
+    ["email"]
+  ],
+  drivers: [
+    ["phone"],
+    ["email"]
+  ],
+  catalog_items: [
+    ["reference"],
+    ["name"]
+  ],
+  patient_registrations: [
+    ["phone"],
+    ["email"]
+  ]
+};
+
 const defaultWhatsappTemplates = {
   confirmation: "Bonjour, votre commande PandaMed est confirmee.",
   en_route: "Bonjour, votre commande est en route.",
@@ -579,6 +613,22 @@ async function ensureRequiredSchema() {
   await ensureLegacyColumnCompatibility();
 }
 
+async function seedRowExists(tableName, valuesByColumn, existingColumnNames) {
+  const lookupGroups = seedLookupConfig[tableName] ?? [];
+
+  for (const group of lookupGroups) {
+    const usableColumns = group.filter((column) => existingColumnNames.has(column) && valuesByColumn[column] != null && valuesByColumn[column] !== "");
+    if (!usableColumns.length) continue;
+
+    const where = usableColumns.map((column) => `${column} = ?`).join(" AND ");
+    const params = usableColumns.map((column) => valuesByColumn[column]);
+    const existing = await get(`SELECT id FROM ${tableName} WHERE ${where} LIMIT 1`, params);
+    if (existing) return true;
+  }
+
+  return false;
+}
+
 async function ensureLegacyColumnCompatibility() {
   for (const [tableName, aliasMap] of Object.entries(legacyColumnAliases)) {
     const columns = await all(`PRAGMA table_info(${tableName})`);
@@ -639,9 +689,6 @@ async function resetTableSequence(tableName) {
 }
 
 async function seedTable(tableName, rows) {
-  const count = await get(`SELECT COUNT(*) AS count FROM ${tableName}`);
-  if (count?.count) return;
-
   if (tableName === "orders") {
     for (const row of rows) {
       const patient = row.patient_phone ? await get("SELECT id FROM patients WHERE phone = ?", [row.patient_phone]) : null;
@@ -681,6 +728,10 @@ async function seedTable(tableName, rows) {
       valuesByColumn[legacyColumn] = valuesByColumn[canonicalColumn] ?? row[canonicalColumn] ?? null;
     }
 
+    if (await seedRowExists(tableName, valuesByColumn, existingColumnNames)) {
+      continue;
+    }
+
     const columns = Object.keys(valuesByColumn).filter((column) => existingColumnNames.has(column));
     const placeholders = columns.map(() => "?").join(", ");
     await run(`INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${placeholders})`, columns.map((column) => valuesByColumn[column] ?? null));
@@ -699,10 +750,26 @@ async function seedDatabase() {
 }
 
 async function seedPatientRegistrations() {
-  const count = await get("SELECT COUNT(*) AS count FROM patient_registrations");
-  if (count?.count) return;
-
   for (const row of seedData.patient_registrations ?? []) {
+    const existingColumns = await all("PRAGMA table_info(patient_registrations)");
+    const existingColumnNames = new Set(existingColumns.map((column) => column.name));
+    const valuesByColumn = {
+      first_name: row.first_name,
+      last_name: row.last_name,
+      phone: row.phone,
+      email: row.email ?? null,
+      wilaya: row.wilaya ?? null,
+      area: row.area ?? null,
+      address: row.address ?? null,
+      conditions: row.conditions ?? null,
+      allergies: row.allergies ?? null,
+      notes: row.notes ?? null,
+      password: row.password ?? row.phone,
+      status: row.status ?? "pending"
+    };
+    if (await seedRowExists("patient_registrations", valuesByColumn, existingColumnNames)) {
+      continue;
+    }
     await run(
       `INSERT INTO patient_registrations (first_name, last_name, phone, email, wilaya, area, address, conditions, allergies, notes, password, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
