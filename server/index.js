@@ -53,6 +53,174 @@ const restoreDeleteOrder = [
   "whatsapp_settings"
 ];
 
+const requiredTableColumns = {
+  patients: {
+    first_name: "TEXT",
+    last_name: "TEXT",
+    phone: "TEXT",
+    email: "TEXT",
+    password: "TEXT",
+    date_of_birth: "TEXT",
+    sex: "TEXT",
+    address: "TEXT",
+    postal_code: "TEXT",
+    wilaya: "TEXT",
+    area: "TEXT",
+    conditions: "TEXT",
+    allergies: "TEXT",
+    notes: "TEXT",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  pharmacies: {
+    name: "TEXT",
+    manager_name: "TEXT",
+    phone: "TEXT",
+    whatsapp: "TEXT",
+    email: "TEXT",
+    password: "TEXT",
+    address: "TEXT",
+    postal_code: "TEXT",
+    wilaya: "TEXT",
+    area: "TEXT",
+    zone_name: "TEXT",
+    opening_hours: "TEXT",
+    status: "TEXT DEFAULT 'online'",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  drivers: {
+    first_name: "TEXT",
+    last_name: "TEXT",
+    phone: "TEXT",
+    email: "TEXT",
+    password: "TEXT",
+    zone_name: "TEXT",
+    vehicle: "TEXT",
+    status: "TEXT DEFAULT 'actif'",
+    rating: "DOUBLE PRECISION DEFAULT 0",
+    packages_count: "INTEGER DEFAULT 0",
+    revenue: "DOUBLE PRECISION DEFAULT 0",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  catalog_items: {
+    name: "TEXT",
+    category: "TEXT",
+    form: "TEXT",
+    unit: "TEXT",
+    price: "DOUBLE PRECISION DEFAULT 0",
+    reference: "TEXT",
+    image: "TEXT",
+    contraindications: "TEXT",
+    is_active: "INTEGER DEFAULT 1",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  users: {
+    first_name: "TEXT",
+    last_name: "TEXT",
+    phone: "TEXT",
+    email: "TEXT",
+    role: "TEXT",
+    status: "TEXT DEFAULT 'actif'",
+    password: "TEXT",
+    password_hint: "TEXT",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  sponsors: {
+    name: "TEXT",
+    slogan: "TEXT",
+    logo: "TEXT",
+    type: "TEXT",
+    website: "TEXT",
+    is_active: "INTEGER DEFAULT 1",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  orders: {
+    patient_id: "INTEGER",
+    pharmacy_id: "INTEGER",
+    driver_id: "INTEGER",
+    products: "TEXT",
+    amount: "DOUBLE PRECISION DEFAULT 0",
+    status: "TEXT DEFAULT 'pending'",
+    channel: "TEXT",
+    source: "TEXT",
+    notes: "TEXT",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP",
+    delivered_at: "TIMESTAMPTZ"
+  },
+  driver_applications: {
+    first_name: "TEXT",
+    last_name: "TEXT",
+    phone: "TEXT",
+    whatsapp: "TEXT",
+    email: "TEXT",
+    wilaya: "TEXT",
+    delivery_zone: "TEXT",
+    vehicle: "TEXT",
+    availability: "TEXT",
+    motivation: "TEXT",
+    status: "TEXT DEFAULT 'pending'",
+    reviewed_at: "TIMESTAMPTZ",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  pharmacy_applications: {
+    pharmacy_name: "TEXT",
+    manager_name: "TEXT",
+    phone: "TEXT",
+    whatsapp: "TEXT",
+    email: "TEXT",
+    address: "TEXT",
+    wilaya: "TEXT",
+    service_area: "TEXT",
+    status: "TEXT DEFAULT 'pending'",
+    reviewed_at: "TIMESTAMPTZ",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  patient_registrations: {
+    first_name: "TEXT",
+    last_name: "TEXT",
+    phone: "TEXT",
+    email: "TEXT",
+    wilaya: "TEXT",
+    area: "TEXT",
+    address: "TEXT",
+    conditions: "TEXT",
+    allergies: "TEXT",
+    notes: "TEXT",
+    password: "TEXT",
+    status: "TEXT DEFAULT 'pending'",
+    reviewed_at: "TIMESTAMPTZ",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  whatsapp_settings: {
+    sender_phone: "TEXT",
+    api_token: "TEXT",
+    phone_number_id: "TEXT",
+    api_version: "TEXT",
+    confirmation_template: "TEXT",
+    en_route_template: "TEXT",
+    livree_template: "TEXT",
+    pharmacie_template: "TEXT",
+    mission_livreur_template: "TEXT",
+    updated_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  },
+  whatsapp_message_logs: {
+    order_id: "INTEGER",
+    recipient_phone: "TEXT",
+    action_key: "TEXT",
+    message_body: "TEXT",
+    delivery_status: "TEXT",
+    provider_message_id: "TEXT",
+    response_body: "TEXT",
+    created_at: "TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP"
+  }
+};
+
 const defaultWhatsappTemplates = {
   confirmation: "Bonjour, votre commande PandaMed est confirmee.",
   en_route: "Bonjour, votre commande est en route.",
@@ -330,19 +498,7 @@ async function createTables() {
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`);
 
-  await ensureColumn("catalog_items", "image", "TEXT");
-  await ensureColumn("patients", "password", "TEXT");
-  await ensureColumn("pharmacies", "password", "TEXT");
-  await ensureColumn("drivers", "password", "TEXT");
-  await ensureColumn("users", "password", "TEXT");
-  await ensureColumn("driver_applications", "status", "TEXT DEFAULT 'pending'");
-  await ensureColumn("driver_applications", "reviewed_at", "TEXT");
-  await ensureColumn("pharmacy_applications", "status", "TEXT DEFAULT 'pending'");
-  await ensureColumn("pharmacy_applications", "reviewed_at", "TEXT");
-  await ensureColumn("patient_registrations", "password", "TEXT");
-  await ensureColumn("whatsapp_settings", "api_token", "TEXT");
-  await ensureColumn("whatsapp_settings", "phone_number_id", "TEXT");
-  await ensureColumn("whatsapp_settings", "api_version", "TEXT");
+  await ensureRequiredSchema();
   await seedWhatsappSettings();
 }
 
@@ -351,6 +507,14 @@ async function ensureColumn(tableName, columnName, columnSql) {
   const exists = columns.some((column) => column.name === columnName);
   if (!exists) {
     await run(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnSql}`);
+  }
+}
+
+async function ensureRequiredSchema() {
+  for (const [tableName, columnMap] of Object.entries(requiredTableColumns)) {
+    for (const [columnName, columnSql] of Object.entries(columnMap)) {
+      await ensureColumn(tableName, columnName, columnSql);
+    }
   }
 }
 
