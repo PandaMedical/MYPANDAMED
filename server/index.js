@@ -240,8 +240,7 @@ const legacyColumnAliases = {
     localisation: "area",
     antecedents: "conditions",
     allergies: "allergies",
-    notes: "notes",
-    actif: "status"
+    notes: "notes"
   },
   pharmacies: {
     nom: "name",
@@ -250,8 +249,7 @@ const legacyColumnAliases = {
     code_postal: "postal_code",
     localisation: "area",
     zone: "zone_name",
-    horaires: "opening_hours",
-    actif: "status"
+    horaires: "opening_hours"
   },
   drivers: {
     prenom: "first_name",
@@ -259,7 +257,6 @@ const legacyColumnAliases = {
     telephone: "phone",
     zone: "zone_name",
     vehicule: "vehicle",
-    actif: "status",
     revenus: "revenue"
   },
   users: {
@@ -267,8 +264,7 @@ const legacyColumnAliases = {
     nom: "last_name",
     telephone: "phone",
     mot_de_passe: "password",
-    indice_mot_de_passe: "password_hint",
-    actif: "status"
+    indice_mot_de_passe: "password_hint"
   },
   catalog_items: {
     produit: "name",
