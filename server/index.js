@@ -267,6 +267,7 @@ const legacyColumnAliases = {
     nom: "last_name",
     telephone: "phone",
     tel: "phone",
+    pwd: "password",
     mot_de_passe: "password",
     indice_mot_de_passe: "password_hint"
   },
