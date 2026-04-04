@@ -590,16 +590,37 @@ async function ensureLegacyColumnCompatibility() {
     for (const [legacyColumn, canonicalColumn] of Object.entries(aliasMap)) {
       if (!columnNames.has(legacyColumn) || !columnNames.has(canonicalColumn)) continue;
 
-      await run(
-        `UPDATE ${tableName}
-         SET ${canonicalColumn} = COALESCE(${canonicalColumn}, ${legacyColumn})
-         WHERE ${canonicalColumn} IS NULL AND ${legacyColumn} IS NOT NULL`
-      );
-      await run(
-        `UPDATE ${tableName}
-         SET ${legacyColumn} = COALESCE(${legacyColumn}, ${canonicalColumn})
-         WHERE ${legacyColumn} IS NULL AND ${canonicalColumn} IS NOT NULL`
-      );
+      if (canonicalColumn === "is_active") {
+        await run(
+          `UPDATE ${tableName}
+           SET ${canonicalColumn} = CASE
+             WHEN ${canonicalColumn} IS NULL AND ${legacyColumn} IS NOT NULL AND ${legacyColumn} = TRUE THEN 1
+             WHEN ${canonicalColumn} IS NULL AND ${legacyColumn} IS NOT NULL AND ${legacyColumn} = FALSE THEN 0
+             ELSE ${canonicalColumn}
+           END
+           WHERE ${canonicalColumn} IS NULL AND ${legacyColumn} IS NOT NULL`
+        );
+        await run(
+          `UPDATE ${tableName}
+           SET ${legacyColumn} = CASE
+             WHEN ${legacyColumn} IS NULL AND ${canonicalColumn} IS NOT NULL AND ${canonicalColumn} <> 0 THEN TRUE
+             WHEN ${legacyColumn} IS NULL AND ${canonicalColumn} IS NOT NULL AND ${canonicalColumn} = 0 THEN FALSE
+             ELSE ${legacyColumn}
+           END
+           WHERE ${legacyColumn} IS NULL AND ${canonicalColumn} IS NOT NULL`
+        );
+      } else {
+        await run(
+          `UPDATE ${tableName}
+           SET ${canonicalColumn} = ${legacyColumn}
+           WHERE ${canonicalColumn} IS NULL AND ${legacyColumn} IS NOT NULL`
+        );
+        await run(
+          `UPDATE ${tableName}
+           SET ${legacyColumn} = ${canonicalColumn}
+           WHERE ${legacyColumn} IS NULL AND ${canonicalColumn} IS NOT NULL`
+        );
+      }
 
       try {
         await run(`ALTER TABLE ${tableName} ALTER COLUMN ${legacyColumn} DROP NOT NULL`);
