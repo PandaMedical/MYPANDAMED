@@ -234,6 +234,7 @@ const legacyColumnAliases = {
     prenom: "first_name",
     nom: "last_name",
     telephone: "phone",
+    tel: "phone",
     date_naissance: "date_of_birth",
     sexe: "sex",
     code_postal: "postal_code",
@@ -667,10 +668,22 @@ async function seedTable(tableName, rows) {
   }
 
   const configEntry = Object.values(entityConfig).find((entry) => entry.table === tableName);
+  const existingColumns = await all(`PRAGMA table_info(${tableName})`);
+  const existingColumnNames = new Set(existingColumns.map((column) => column.name));
+  const aliasMap = legacyColumnAliases[tableName] ?? {};
+
   for (const row of rows) {
-    const columns = configEntry.columns;
+    const valuesByColumn = Object.fromEntries(configEntry.columns.map((column) => [column, row[column] ?? null]));
+
+    for (const [legacyColumn, canonicalColumn] of Object.entries(aliasMap)) {
+      if (!existingColumnNames.has(legacyColumn)) continue;
+      if (legacyColumn in valuesByColumn) continue;
+      valuesByColumn[legacyColumn] = valuesByColumn[canonicalColumn] ?? row[canonicalColumn] ?? null;
+    }
+
+    const columns = Object.keys(valuesByColumn).filter((column) => existingColumnNames.has(column));
     const placeholders = columns.map(() => "?").join(", ");
-    await run(`INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${placeholders})`, columns.map((column) => row[column] ?? null));
+    await run(`INSERT INTO ${tableName} (${columns.join(", ")}) VALUES (${placeholders})`, columns.map((column) => valuesByColumn[column] ?? null));
   }
 }
 
