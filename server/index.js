@@ -516,6 +516,23 @@ async function ensureRequiredSchema() {
       await ensureColumn(tableName, columnName, columnSql);
     }
   }
+
+  await ensureLegacySponsorsCompatibility();
+}
+
+async function ensureLegacySponsorsCompatibility() {
+  const columns = await all("PRAGMA table_info(sponsors)");
+  const hasNom = columns.some((column) => column.name === "nom");
+  if (!hasNom) return;
+
+  await run("UPDATE sponsors SET name = COALESCE(name, nom) WHERE name IS NULL AND nom IS NOT NULL");
+  await run("UPDATE sponsors SET nom = COALESCE(nom, name) WHERE nom IS NULL AND name IS NOT NULL");
+
+  try {
+    await run("ALTER TABLE sponsors ALTER COLUMN nom DROP NOT NULL");
+  } catch {
+    // Ignore si la contrainte n'existe pas deja ou si le schema ne le permet pas.
+  }
 }
 
 async function resetTableSequence(tableName) {
