@@ -320,10 +320,12 @@ const seedLookupConfig = {
     ["name"],
     ["nom"],
     ["phone"],
+    ["tel"],
     ["email"]
   ],
   drivers: [
     ["phone"],
+    ["tel"],
     ["email"]
   ],
   catalog_items: [
