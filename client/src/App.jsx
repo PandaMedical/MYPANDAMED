@@ -471,7 +471,10 @@ function SimpleOrdersTable({ rows, actions }) {
 
 function DriverSpaceApp({ currentUser, onLogout }) {
   const [data, setData] = useState({ driver: null, orders: [] });
-  const [error, setError] = useState("");
+  const [pageError, setPageError] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [driverError, setDriverError] = useState("");
+  const [pharmacyError, setPharmacyError] = useState("");
   const [selectedPharmacy, setSelectedPharmacy] = useState(null);
 
   async function load() {
@@ -621,7 +624,7 @@ function PatientSpaceApp({ currentUser, onLogout }) {
   useEffect(() => {
     request(`/patient-space/${currentUser.id}`)
       .then(setData)
-      .catch((loadError) => setError(loadError.message));
+      .catch((loadError) => setPageError(loadError.message));
   }, [currentUser.id]);
 
   return (
@@ -781,7 +784,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   async function submitDriverApplication(event) {
     event.preventDefault();
     setDriverSubmitting(true);
-    setError("");
+    setDriverError("");
     setDriverSuccess("");
     try {
       await request("/driver-applications", {
@@ -795,7 +798,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         setDriverSuccess("");
       }, 1200);
     } catch (submitError) {
-      setError(submitError.message);
+      setDriverError(submitError.message);
     } finally {
       setDriverSubmitting(false);
     }
@@ -808,7 +811,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   async function submitPharmacyApplication(event) {
     event.preventDefault();
     setPharmacySubmitting(true);
-    setError("");
+    setPharmacyError("");
     setPharmacySuccess("");
     try {
       await request("/pharmacy-applications", {
@@ -822,7 +825,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         setPharmacySuccess("");
       }, 1200);
     } catch (submitError) {
-      setError(submitError.message);
+      setPharmacyError(submitError.message);
     } finally {
       setPharmacySubmitting(false);
     }
@@ -831,7 +834,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   function submitLogin(event) {
     event.preventDefault();
     setLoginSubmitting(true);
-    setError("");
+    setAuthError("");
     setAuthFeedback("");
     request("/auth/login", {
       method: "POST",
@@ -841,8 +844,9 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         onLogin(user);
         setLoginModalOpen(false);
         window.history.pushState({}, "", user.redirectPath);
+        window.dispatchEvent(new Event("popstate"));
       })
-      .catch((loginError) => setError(loginError.message))
+      .catch((loginError) => setAuthError(loginError.message))
       .finally(() => setLoginSubmitting(false));
   }
 
@@ -851,7 +855,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   }
 
   function openLoginModal() {
-    setError("");
+    setAuthError("");
     setAuthFeedback("");
     setAuthTab("login");
     setLoginModalOpen(true);
@@ -859,7 +863,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
   function closeLoginModal() {
     setLoginModalOpen(false);
-    setError("");
+    setAuthError("");
     setAuthFeedback("");
     setShowLoginPassword(false);
     setShowRegisterPassword(false);
@@ -868,20 +872,20 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
   function switchAuthTab(nextTab) {
     setAuthTab(nextTab);
-    setError("");
+    setAuthError("");
     setAuthFeedback("");
   }
 
   async function submitRegister(event) {
     event.preventDefault();
-    setError("");
+    setAuthError("");
     setAuthFeedback("");
     if (registerForm.password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caracteres");
+      setAuthError("Le mot de passe doit contenir au moins 6 caracteres");
       return;
     }
     if (registerForm.password !== registerForm.confirmPassword) {
-      setError("Les mots de passe ne correspondent pas");
+      setAuthError("Les mots de passe ne correspondent pas");
       return;
     }
 
@@ -898,7 +902,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       setAuthFeedbackType("success");
       setAuthFeedback(result.message);
     } catch (registerError) {
-      setError(registerError.message);
+      setAuthError(registerError.message);
     } finally {
       setRegisterSubmitting(false);
     }
@@ -997,7 +1001,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         </aside>
 
         <main className="catalog-shell">
-          {error ? <div className="error-banner">{error}</div> : null}
+          {pageError ? <div className="error-banner">{pageError}</div> : null}
           <div className="catalog-grid">
             {filteredCatalog.map((item) => (
               <ProductCard key={item.id} item={item} onAdd={addToCart} />
@@ -1087,6 +1091,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
               </label>
 
               {driverSuccess ? <div className="success-banner">{driverSuccess}</div> : null}
+              {driverError ? <div className="auth-feedback error">{driverError}</div> : null}
 
               <div className="driver-actions">
                 <button type="button" className="secondary-action" onClick={() => setDriverModalOpen(false)} title="Annuler" aria-label="Annuler">
@@ -1157,6 +1162,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
               </div>
 
               {pharmacySuccess ? <div className="success-banner">{pharmacySuccess}</div> : null}
+              {pharmacyError ? <div className="auth-feedback error">{pharmacyError}</div> : null}
 
               <div className="driver-actions">
                 <button type="button" className="secondary-action" onClick={() => setPharmacyModalOpen(false)} title="Annuler" aria-label="Annuler">
@@ -1265,8 +1271,8 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
               </form>
             )}
 
-            {error ? <div className="auth-feedback error">{error}</div> : null}
-            {!error && authFeedback ? <div className={`auth-feedback ${authFeedbackType}`}>{authFeedback}</div> : null}
+            {authError ? <div className="auth-feedback error">{authError}</div> : null}
+            {!authError && authFeedback ? <div className={`auth-feedback ${authFeedbackType}`}>{authFeedback}</div> : null}
           </div>
         </div>
       ) : null}
@@ -2314,8 +2320,7 @@ function AdminApp({ onLogout }) {
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
-
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
+  const [pathname, setPathname] = useState(typeof window !== "undefined" ? window.location.pathname : "/");
 
   useEffect(() => {
     request("/auth/me")
@@ -2323,8 +2328,18 @@ export default function App() {
       .catch(() => setCurrentUser(null));
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const syncPathname = () => setPathname(window.location.pathname);
+    window.addEventListener("popstate", syncPathname);
+    return () => window.removeEventListener("popstate", syncPathname);
+  }, []);
+
   function handleLogin(user) {
     setCurrentUser(user);
+    if (typeof window !== "undefined") {
+      setPathname(window.location.pathname);
+    }
   }
 
   async function handleLogout() {
@@ -2334,6 +2349,7 @@ export default function App() {
     setCurrentUser(null);
     if (typeof window !== "undefined") {
       window.history.pushState({}, "", "/");
+      setPathname("/");
     }
   }
 
