@@ -257,6 +257,7 @@ const legacyColumnAliases = {
     prenom: "first_name",
     nom: "last_name",
     telephone: "phone",
+    tel: "phone",
     zone: "zone_name",
     vehicule: "vehicle",
     revenus: "revenue"
@@ -265,6 +266,7 @@ const legacyColumnAliases = {
     prenom: "first_name",
     nom: "last_name",
     telephone: "phone",
+    tel: "phone",
     mot_de_passe: "password",
     indice_mot_de_passe: "password_hint"
   },
@@ -278,6 +280,24 @@ const legacyColumnAliases = {
     image_url: "image",
     contre_indications: "contraindications",
     actif: "is_active"
+  },
+  patient_registrations: {
+    prenom: "first_name",
+    nom: "last_name",
+    telephone: "phone",
+    tel: "phone"
+  },
+  driver_applications: {
+    prenom: "first_name",
+    nom: "last_name",
+    telephone: "phone",
+    tel: "phone"
+  },
+  pharmacy_applications: {
+    nom_pharmacie: "pharmacy_name",
+    responsable: "manager_name",
+    telephone: "phone",
+    tel: "phone"
   }
 };
 
