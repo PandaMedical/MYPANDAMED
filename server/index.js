@@ -21,7 +21,7 @@ const shouldSeedDemoData =
   (process.env.NODE_ENV !== "production" && process.env.ENABLE_DEMO_SEED !== "false");
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 const backupTables = [
   "users",
@@ -1701,6 +1701,9 @@ if (fs.existsSync(clientDist)) {
 
 app.use((error, _req, res, _next) => {
   console.error(error);
+  if (error?.type === "entity.too.large") {
+    return res.status(413).json({ message: "Le logo est trop volumineux. Reduisez la taille de l image puis reessayez." });
+  }
   res.status(500).json({ message: error.message || "Unexpected server error" });
 });
 

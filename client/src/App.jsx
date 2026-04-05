@@ -210,12 +210,62 @@ async function request(path, options = {}) {
     try {
       const body = await response.json();
       if (body?.message) message = body.message;
-    } catch {}
+    } catch {
+      try {
+        const fallbackText = await response.text();
+        if (fallbackText?.includes("FUNCTION_PAYLOAD_TOO_LARGE") || fallbackText?.includes("413")) {
+          message = "L image est trop volumineuse. Reduisez-la puis reessayez.";
+        } else if (fallbackText?.trim()) {
+          message = fallbackText.trim().slice(0, 180);
+        }
+      } catch {}
+    }
     throw new Error(message);
   }
 
   if (response.status === 204) return null;
   return response.json();
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => reject(new Error("Lecture du fichier impossible."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Image invalide."));
+    image.src = dataUrl;
+  });
+}
+
+async function optimizeImageFile(file, { maxWidth, maxHeight, type = "image/webp", quality = 0.9, maxBytes = 700_000 }) {
+  const originalDataUrl = await readFileAsDataUrl(file);
+  if (originalDataUrl.length <= maxBytes) return originalDataUrl;
+
+  const image = await loadImageFromDataUrl(originalDataUrl);
+  const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+  const targetWidth = Math.max(1, Math.round(image.width * scale));
+  const targetHeight = Math.max(1, Math.round(image.height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d");
+
+  if (!context) return originalDataUrl;
+
+  context.clearRect(0, 0, targetWidth, targetHeight);
+  context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  const optimizedDataUrl = canvas.toDataURL(type, quality);
+  return optimizedDataUrl.length < originalDataUrl.length ? optimizedDataUrl : originalDataUrl;
 }
 
 function buildSponsorPayload(row) {
@@ -1411,25 +1461,17 @@ function AdminApp({ onLogout }) {
   function updateCatalogImage(event) {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
-      updateAdminField("image", result);
-    };
-    reader.readAsDataURL(file);
+    optimizeImageFile(file, { maxWidth: 900, maxHeight: 900, maxBytes: 900_000 })
+      .then((result) => updateAdminField("image", result))
+      .catch((error) => setError(error.message));
   }
 
   function updateSponsorLogo(event) {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
-      updateAdminField("logo", result);
-    };
-    reader.readAsDataURL(file);
+    optimizeImageFile(file, { maxWidth: 720, maxHeight: 320, maxBytes: 600_000 })
+      .then((result) => updateAdminField("logo", result))
+      .catch((error) => setError(error.message));
   }
 
   async function saveAdminEntity(event) {
