@@ -836,6 +836,21 @@ async function seedWhatsappSettings() {
   );
 }
 
+function defaultWhatsappSettings() {
+  return {
+    id: 1,
+    sender_phone: "213555123456",
+    api_token: "",
+    phone_number_id: "",
+    api_version: "v23.0",
+    confirmation_template: defaultWhatsappTemplates.confirmation,
+    en_route_template: defaultWhatsappTemplates.en_route,
+    livree_template: defaultWhatsappTemplates.livree,
+    pharmacie_template: defaultWhatsappTemplates.pharmacie,
+    mission_livreur_template: defaultWhatsappTemplates.mission_livreur
+  };
+}
+
 async function listOrders() {
   return all(
     `SELECT
@@ -1330,13 +1345,21 @@ app.post("/api/pharmacy-applications", async (req, res, next) => {
 
 app.get("/api/settings/overview", async (_req, res, next) => {
   try {
-    const [driverApplications, pharmacyApplications, patientRegistrations, whatsappSettings, whatsappLogs] = await Promise.all([
+    await seedWhatsappSettings().catch(() => {});
+
+    const settled = await Promise.allSettled([
       all("SELECT * FROM driver_applications ORDER BY created_at DESC"),
       all("SELECT * FROM pharmacy_applications ORDER BY created_at DESC"),
       all("SELECT * FROM patient_registrations ORDER BY created_at DESC"),
       get("SELECT * FROM whatsapp_settings WHERE id = 1"),
       all("SELECT * FROM whatsapp_message_logs ORDER BY created_at DESC LIMIT 20")
     ]);
+
+    const driverApplications = settled[0].status === "fulfilled" ? settled[0].value : [];
+    const pharmacyApplications = settled[1].status === "fulfilled" ? settled[1].value : [];
+    const patientRegistrations = settled[2].status === "fulfilled" ? settled[2].value : [];
+    const whatsappSettings = settled[3].status === "fulfilled" && settled[3].value ? settled[3].value : defaultWhatsappSettings();
+    const whatsappLogs = settled[4].status === "fulfilled" ? settled[4].value : [];
 
     res.json({
       driverApplications,
