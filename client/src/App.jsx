@@ -1498,9 +1498,9 @@ function AdminApp({ onLogout }) {
   function updateCatalogImage(event) {
     const file = event.target.files?.[0];
     if (!file) return;
-    optimizeImageFile(file, { maxWidth: 900, maxHeight: 900 })
+    optimizeImageFile(file, { maxWidth: 640, maxHeight: 640 })
       .then((result) => {
-        if (result.length > 900_000) {
+        if (result.length > 320_000) {
           throw new Error("L image produit est encore trop volumineuse. Utilisez une image plus legere.");
         }
         updateAdminField("image", result);
@@ -1539,6 +1539,9 @@ function AdminApp({ onLogout }) {
       }
       if (adminModal.entity === "catalog") {
         body.price = Number(body.price || 0);
+        if (String(body.image ?? "").startsWith("data:image") && String(body.image).length > 320_000) {
+          throw new Error("L image produit est trop volumineuse pour la sauvegarde. Utilisez une image plus legere.");
+        }
       }
       if (adminModal.entity === "sponsors") {
         Object.assign(body, buildSponsorPayload(body));
