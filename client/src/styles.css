@@ -41,9 +41,10 @@ select {
 
 .store-header {
   display: grid;
-  grid-template-columns: 1.1fr 1.8fr 2.4fr;
+  grid-template-columns: minmax(180px, 260px) minmax(360px, 520px) minmax(180px, 260px);
   gap: 14px;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 16px;
   background:
     radial-gradient(circle at 82% 18%, rgba(82, 174, 232, 0.14), transparent 16%),
@@ -51,9 +52,19 @@ select {
     linear-gradient(135deg, #122044, #162650 48%, #1b2f63 76%, #284786 100%);
 }
 
+.store-header > :first-child {
+  justify-self: start;
+  width: 100%;
+}
+
 .store-header > :nth-child(2) {
   justify-self: center;
   width: min(100%, 460px);
+}
+
+.store-header > :last-child {
+  justify-self: end;
+  width: 100%;
 }
 
 .brand-panel,
