@@ -337,6 +337,60 @@ function getSponsorWebsiteLabel(website) {
   }
 }
 
+const orderStatusLabels = {
+  pending: "En attente",
+  confirmed: "Confirmee",
+  dispatch: "En livraison",
+  delivered: "Livree",
+  cancelled: "Annulee"
+};
+
+function getOrderStatusLabel(status) {
+  return orderStatusLabels[String(status ?? "").toLowerCase()] ?? String(status ?? "-");
+}
+
+const pharmacyStatusLabels = {
+  online: "En ligne",
+  busy: "Occupee",
+  offline: "Hors ligne"
+};
+
+function getPharmacyStatusLabel(status) {
+  return pharmacyStatusLabels[String(status ?? "").toLowerCase()] ?? String(status ?? "-");
+}
+
+const activeStatusLabels = {
+  actif: "Actif",
+  inactif: "Inactif",
+  active: "Actif",
+  inactive: "Inactif"
+};
+
+function getActiveStatusLabel(status) {
+  return activeStatusLabels[String(status ?? "").toLowerCase()] ?? String(status ?? "-");
+}
+
+const reviewStatusLabels = {
+  pending: "En attente",
+  approved: "Validee",
+  rejected: "Refusee"
+};
+
+function getReviewStatusLabel(status) {
+  return reviewStatusLabels[String(status ?? "").toLowerCase()] ?? String(status ?? "-");
+}
+
+function getDisplayStatusLabel(status) {
+  const value = String(status ?? "-");
+  const orderLabel = getOrderStatusLabel(status);
+  if (orderLabel !== value) return orderLabel;
+  const pharmacyLabel = getPharmacyStatusLabel(status);
+  if (pharmacyLabel !== value) return pharmacyLabel;
+  const activeLabel = getActiveStatusLabel(status);
+  if (activeLabel !== value) return activeLabel;
+  return getReviewStatusLabel(status);
+}
+
 function AdminMetric({ label, value }) {
   return (
     <div className="admin-metric">
@@ -429,7 +483,7 @@ function PartnerVisualModal({ title, zone, data, onClose }) {
             <h3>Informations generales</h3>
             <div className="partner-info-grid">
               <span>Statut</span>
-              <strong>{data.status ?? "-"}</strong>
+                <strong>{getDisplayStatusLabel(data.status)}</strong>
               <span>Horaires</span>
               <strong>{data.opening_hours ?? "-"}</strong>
             </div>
@@ -1482,8 +1536,27 @@ function AdminApp({ onLogout }) {
     [entities]
   );
 
-  function openAdminModal(entity, row = null) {
+  async function ensureOrderSelectData() {
+    const loaders = [];
+    if (!entities.patients.length) loaders.push(loadAdminSection("patients"));
+    if (!entities.pharmacies.length) loaders.push(loadAdminSection("pharmacies"));
+    if (!entities.drivers.length) loaders.push(loadAdminSection("drivers"));
+    if (loaders.length) {
+      await Promise.all(loaders);
+    }
+  }
+
+  async function openAdminModal(entity, row = null) {
     const config = adminEntityConfig[entity];
+    setError("");
+    try {
+      if (entity === "orders") {
+        await ensureOrderSelectData();
+      }
+    } catch (loadError) {
+      setError(`Chargement admin impossible: ${entity}`);
+      return;
+    }
     setAdminModal({
       entity,
       rowId: row?.id ?? null,
@@ -1493,6 +1566,23 @@ function AdminApp({ onLogout }) {
 
   function updateAdminField(name, value) {
     setAdminModal((current) => ({ ...current, values: { ...current.values, [name]: value } }));
+  }
+
+  function openAdminOrderPharmacy(row) {
+    setSelectedAdminPharmacy({
+      id: row.pharmacy_id ?? row.pharmacy_ref_id ?? null,
+      name: row.pharmacy_name ?? "Pharmacie",
+      zone_name: row.pharmacy_zone_name ?? row.pharmacy_area ?? "",
+      status: row.pharmacy_status ?? "",
+      opening_hours: row.pharmacy_opening_hours ?? "",
+      phone: row.pharmacy_phone ?? "",
+      whatsapp: row.pharmacy_whatsapp ?? "",
+      email: row.pharmacy_email ?? "",
+      address: row.pharmacy_address ?? "",
+      postal_code: row.pharmacy_postal_code ?? "",
+      wilaya: row.pharmacy_wilaya ?? "",
+      area: row.pharmacy_area ?? ""
+    });
   }
 
   function updateCatalogImage(event) {
@@ -1800,7 +1890,7 @@ function AdminApp({ onLogout }) {
                       <td>{row.patient_name ?? "-"}</td>
                       <td>{row.pharmacy_name ?? "-"}</td>
                       <td>{Number(row.amount).toLocaleString("fr-FR")} DA</td>
-                      <td>{row.status}</td>
+                        <td>{getOrderStatusLabel(row.status)}</td>
                     </tr>
                   )}
                 />
@@ -1856,10 +1946,10 @@ function AdminApp({ onLogout }) {
                   <td>{row.pharmacy_name ?? "-"}</td>
                   <td>{row.driver_name ?? "-"}</td>
                   <td>{Number(row.amount).toLocaleString("fr-FR")} DA</td>
-                  <td>{row.status}</td>
+                  <td>{getOrderStatusLabel(row.status)}</td>
                   <td>
                     <div className="admin-actions-inline">
-                      <button type="button" className="admin-table-button" onClick={() => setSelectedAdminPharmacy(entities.pharmacies.find((item) => item.id === row.pharmacy_id) ? { ...entities.pharmacies.find((item) => item.id === row.pharmacy_id) } : null)} title="Voir la pharmacie" aria-label="Voir la pharmacie">🏥</button>
+                       <button type="button" className="admin-table-button" onClick={() => openAdminOrderPharmacy(row)} title="Voir la pharmacie" aria-label="Voir la pharmacie">🏥</button>
                       <button type="button" className="admin-primary-button" onClick={() => adminUpdateOrderStatus(row.id, "confirmed", "confirmation")} title="Confirmer" aria-label="Confirmer la commande">✓</button>
                       <button type="button" className="admin-table-button" onClick={() => triggerOrderWhatsapp(row.id, "mission_livreur")} title="Affecter livreur" aria-label="Envoyer mission livreur" disabled={!row.driver_id}>🛵</button>
                       <button type="button" className="admin-table-button" onClick={() => adminUpdateOrderStatus(row.id, "delivered", "livree")} title="Livree" aria-label="Marquer la commande comme livree">📦</button>
@@ -1935,7 +2025,7 @@ function AdminApp({ onLogout }) {
                   <td>{row.manager_name}</td>
                   <td>{row.phone}</td>
                   <td>{row.zone_name}</td>
-                  <td>{row.status}</td>
+                  <td>{getPharmacyStatusLabel(row.status)}</td>
                   <td>
                     <div className="admin-actions-inline">
                       <button
@@ -1946,7 +2036,7 @@ function AdminApp({ onLogout }) {
                             title: row.name,
                             zone: row.zone_name ?? row.area,
                             data: {
-                              status: row.status,
+                              status: getPharmacyStatusLabel(row.status),
                               opening_hours: row.opening_hours,
                               phone: row.phone,
                               whatsapp: row.whatsapp,
@@ -1997,7 +2087,7 @@ function AdminApp({ onLogout }) {
                             title: `${row.first_name} ${row.last_name}`,
                             zone: row.zone_name,
                             data: {
-                              status: row.status,
+                              status: getActiveStatusLabel(row.status),
                               opening_hours: row.vehicle,
                               phone: row.phone,
                               whatsapp: row.phone,
@@ -2060,7 +2150,7 @@ function AdminApp({ onLogout }) {
                   <td>{row.last_name}</td>
                   <td>{row.role}</td>
                   <td>{row.email}</td>
-                  <td>{row.status}</td>
+                  <td>{getActiveStatusLabel(row.status)}</td>
                   <td>
                     <div className="admin-actions-inline">
                       <button type="button" className="admin-table-button" onClick={() => openAdminModal("users", row)} title="Modifier" aria-label="Modifier l utilisateur">✎</button>
@@ -2114,7 +2204,7 @@ function AdminApp({ onLogout }) {
                     <td>{row.first_name} {row.last_name}</td>
                     <td>{row.phone}</td>
                     <td>{row.delivery_zone || row.wilaya || "-"}</td>
-                    <td>{row.status}</td>
+                    <td>{getReviewStatusLabel(row.status)}</td>
                     <td>
                       <div className="admin-actions-inline">
                         <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("driver-applications", row.id, "approve")} title="Valider" aria-label="Valider la candidature livreur" disabled={settingsBusy || row.status === "approved"}>✓</button>
@@ -2139,7 +2229,7 @@ function AdminApp({ onLogout }) {
                     <td>{row.pharmacy_name}</td>
                     <td>{row.manager_name}</td>
                     <td>{row.phone}</td>
-                    <td>{row.status}</td>
+                    <td>{getReviewStatusLabel(row.status)}</td>
                     <td>
                       <div className="admin-actions-inline">
                         <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("pharmacy-applications", row.id, "approve")} title="Valider" aria-label="Valider la pharmacie" disabled={settingsBusy || row.status === "approved"}>✓</button>
@@ -2164,7 +2254,7 @@ function AdminApp({ onLogout }) {
                     <td>{row.first_name} {row.last_name}</td>
                     <td>{row.phone}</td>
                     <td>{row.wilaya ?? "-"}</td>
-                    <td>{row.status}</td>
+                    <td>{getReviewStatusLabel(row.status)}</td>
                     <td>
                       <div className="admin-actions-inline">
                         <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("patient-registrations", row.id, "approve")} title="Valider" aria-label="Valider le patient" disabled={settingsBusy || row.status === "approved"}>✓</button>
@@ -2293,7 +2383,7 @@ function AdminApp({ onLogout }) {
                 <label><span>Livreur</span><select value={adminModal.values.driver_id ?? ""} onChange={(event) => updateAdminField("driver_id", event.target.value)}><option value="">Selectionner</option>{adminSelects.drivers.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                 <label><span>Montant</span><input type="number" value={adminModal.values.amount ?? 0} onChange={(event) => updateAdminField("amount", event.target.value)} /></label>
                 <label className="full-span"><span>Produits</span><textarea value={adminModal.values.products ?? ""} onChange={(event) => updateAdminField("products", event.target.value)} /></label>
-                <label><span>Statut</span><select value={adminModal.values.status ?? "pending"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="pending">pending</option><option value="confirmed">confirmed</option><option value="dispatch">dispatch</option><option value="delivered">delivered</option><option value="cancelled">cancelled</option></select></label>
+                 <label><span>Statut</span><select value={adminModal.values.status ?? "pending"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="pending">En attente</option><option value="confirmed">Confirmee</option><option value="dispatch">En livraison</option><option value="delivered">Livree</option><option value="cancelled">Annulee</option></select></label>
                 <label><span>Canal</span><select value={adminModal.values.channel ?? "whatsapp"} onChange={(event) => updateAdminField("channel", event.target.value)}><option value="whatsapp">whatsapp</option><option value="email">email</option><option value="call">call</option></select></label>
                 <label><span>Source</span><select value={adminModal.values.source ?? "web"} onChange={(event) => updateAdminField("source", event.target.value)}><option value="web">web</option><option value="call">call</option><option value="wa">wa</option></select></label>
                 <label className="full-span"><span>Notes</span><textarea value={adminModal.values.notes ?? ""} onChange={(event) => updateAdminField("notes", event.target.value)} /></label>
@@ -2327,7 +2417,7 @@ function AdminApp({ onLogout }) {
                 <label><span>Whatsapp</span><input value={adminModal.values.whatsapp ?? ""} onChange={(event) => updateAdminField("whatsapp", event.target.value)} /></label>
                 <label><span>Email</span><input value={adminModal.values.email ?? ""} onChange={(event) => updateAdminField("email", event.target.value)} /></label>
                 <label><span>Mot de passe</span><input value={adminModal.values.password ?? ""} onChange={(event) => updateAdminField("password", event.target.value)} /></label>
-                <label><span>Statut</span><select value={adminModal.values.status ?? "online"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="online">online</option><option value="busy">busy</option><option value="offline">offline</option></select></label>
+                 <label><span>Statut</span><select value={adminModal.values.status ?? "online"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="online">En ligne</option><option value="busy">Occupee</option><option value="offline">Hors ligne</option></select></label>
                 <label><span>Wilaya</span><input value={adminModal.values.wilaya ?? ""} onChange={(event) => updateAdminField("wilaya", event.target.value)} /></label>
                 <label><span>Zone</span><input value={adminModal.values.zone_name ?? ""} onChange={(event) => updateAdminField("zone_name", event.target.value)} /></label>
                 <label><span>Secteur</span><input value={adminModal.values.area ?? ""} onChange={(event) => updateAdminField("area", event.target.value)} /></label>
@@ -2346,7 +2436,7 @@ function AdminApp({ onLogout }) {
                 <label><span>Mot de passe</span><input value={adminModal.values.password ?? ""} onChange={(event) => updateAdminField("password", event.target.value)} /></label>
                 <label><span>Zone</span><input value={adminModal.values.zone_name ?? ""} onChange={(event) => updateAdminField("zone_name", event.target.value)} /></label>
                 <label><span>Vehicule</span><select value={adminModal.values.vehicle ?? "moto"} onChange={(event) => updateAdminField("vehicle", event.target.value)}><option value="moto">moto</option><option value="voiture">voiture</option><option value="scooter">scooter</option></select></label>
-                <label><span>Statut</span><select value={adminModal.values.status ?? "actif"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="actif">actif</option><option value="inactif">inactif</option></select></label>
+                 <label><span>Statut</span><select value={adminModal.values.status ?? "actif"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="actif">Actif</option><option value="inactif">Inactif</option></select></label>
                 <label><span>Note</span><input type="number" step="0.1" value={adminModal.values.rating ?? 0} onChange={(event) => updateAdminField("rating", event.target.value)} /></label>
                 <label><span>Colis</span><input type="number" value={adminModal.values.packages_count ?? 0} onChange={(event) => updateAdminField("packages_count", event.target.value)} /></label>
                 <label><span>CA</span><input type="number" value={adminModal.values.revenue ?? 0} onChange={(event) => updateAdminField("revenue", event.target.value)} /></label>
@@ -2361,7 +2451,7 @@ function AdminApp({ onLogout }) {
                 <label><span>Email</span><input value={adminModal.values.email ?? ""} onChange={(event) => updateAdminField("email", event.target.value)} /></label>
                 <label><span>Mot de passe</span><input value={adminModal.values.password ?? ""} onChange={(event) => updateAdminField("password", event.target.value)} /></label>
                 <label><span>Role</span><select value={adminModal.values.role ?? "operateur"} onChange={(event) => updateAdminField("role", event.target.value)}><option value="admin">admin</option><option value="operateur">operateur</option><option value="pharmacien">pharmacien</option><option value="livreur">livreur</option></select></label>
-                <label><span>Statut</span><select value={adminModal.values.status ?? "actif"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="actif">actif</option><option value="inactif">inactif</option></select></label>
+                 <label><span>Statut</span><select value={adminModal.values.status ?? "actif"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="actif">Actif</option><option value="inactif">Inactif</option></select></label>
                 <label className="full-span"><span>Indice mot de passe</span><input value={adminModal.values.password_hint ?? ""} onChange={(event) => updateAdminField("password_hint", event.target.value)} /></label>
               </div>
             ) : null}
