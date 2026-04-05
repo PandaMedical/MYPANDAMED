@@ -51,6 +51,11 @@ select {
     linear-gradient(135deg, #122044, #162650 48%, #1b2f63 76%, #284786 100%);
 }
 
+.store-header > :nth-child(2) {
+  justify-self: center;
+  width: min(100%, 460px);
+}
+
 .brand-panel,
 .sponsor-panel {
   min-height: 56px;
@@ -77,6 +82,8 @@ select {
   grid-template-columns: 72px 1fr auto;
   gap: 12px;
   align-items: center;
+  justify-self: center;
+  width: 100%;
   padding: 8px 12px;
   color: white;
   background:
