@@ -1346,17 +1346,27 @@ function AdminApp({ onLogout }) {
   }
 
   async function loadAdminData() {
-    const [dashboardData, orders, patients, pharmacies, drivers, catalog, users, sponsors, settingsOverview] = await Promise.all([
-      request("/dashboard"),
-      request("/orders"),
-      request("/patients"),
-      request("/pharmacies"),
-      request("/drivers"),
-      request("/catalog"),
-      request("/users"),
-      request("/sponsors"),
-      request("/settings/overview")
-    ]);
+    const adminRequests = [
+      ["dashboard", "/dashboard"],
+      ["orders", "/orders"],
+      ["patients", "/patients"],
+      ["pharmacies", "/pharmacies"],
+      ["drivers", "/drivers"],
+      ["catalog", "/catalog"],
+      ["users", "/users"],
+      ["sponsors", "/sponsors"],
+      ["settings", "/settings/overview"]
+    ];
+
+    const settled = await Promise.allSettled(adminRequests.map(([, path]) => request(path)));
+    const failed = settled.find((result) => result.status === "rejected");
+    if (failed) {
+      const failedIndex = settled.indexOf(failed);
+      const [failedLabel] = adminRequests[failedIndex];
+      throw new Error(`Chargement admin impossible: ${failedLabel}`);
+    }
+
+    const [dashboardData, orders, patients, pharmacies, drivers, catalog, users, sponsors, settingsOverview] = settled.map((result) => result.value);
     setDashboard(dashboardData);
     setEntities({ orders, patients, pharmacies, drivers, catalog, users, sponsors });
     setSettingsData(settingsOverview);
