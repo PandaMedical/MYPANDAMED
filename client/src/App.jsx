@@ -324,6 +324,19 @@ function getSponsorLogoContent(logo, name) {
   return <span className="sponsor-logo-text">{name.slice(0, 2).toUpperCase()}</span>;
 }
 
+function getSponsorWebsiteLabel(website) {
+  const value = String(website ?? "").trim();
+  if (!value) return "Site web";
+
+  try {
+    const normalized = value.startsWith("http://") || value.startsWith("https://") ? value : `https://${value}`;
+    const hostname = new URL(normalized).hostname.replace(/^www\./i, "");
+    return hostname || value;
+  } catch {
+    return value.replace(/^https?:\/\//i, "").replace(/^www\./i, "") || "Site web";
+  }
+}
+
 function AdminMetric({ label, value }) {
   return (
     <div className="admin-metric">
@@ -968,15 +981,15 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
         <div className="sponsor-panel">
           <div className="sponsor-logo">{getSponsorLogoContent(activeSponsor.logo, activeSponsor.name)}</div>
-          <div className="sponsor-copy">
-            <strong>{activeSponsor.name}</strong>
-            <span>{activeSponsor.slogan}</span>
-          </div>
-          <div className="sponsor-meta">
-            <div className="sponsor-tag">{activeSponsor.type}</div>
-            {orderedSponsors.length > 1 ? (
-              <div className="sponsor-dots" aria-label="Carrousel sponsors">
-                {orderedSponsors.map((item, index) => (
+            <div className="sponsor-copy">
+              <strong>{activeSponsor.name}</strong>
+              <span>{activeSponsor.slogan}</span>
+            </div>
+            <div className="sponsor-meta">
+              <div className="sponsor-tag">{getSponsorWebsiteLabel(activeSponsor.website)}</div>
+              {orderedSponsors.length > 1 ? (
+                <div className="sponsor-dots" aria-label="Carrousel sponsors">
+                  {orderedSponsors.map((item, index) => (
                   <button
                     key={`${item.id ?? item.name}-${index}`}
                     type="button"
@@ -1372,6 +1385,16 @@ function AdminApp({ onLogout }) {
   const [selectedAdminPharmacy, setSelectedAdminPharmacy] = useState(null);
   const [selectedAdminLocation, setSelectedAdminLocation] = useState(null);
 
+  const sectionRequestMap = {
+    orders: "/orders",
+    patients: "/patients",
+    pharmacies: "/pharmacies",
+    drivers: "/drivers",
+    catalog: "/catalog",
+    users: "/users",
+    sponsors: "/sponsors"
+  };
+
   function mergeEntityRow(entityName, row) {
     setEntities((current) => ({
       ...current,
@@ -1393,39 +1416,55 @@ function AdminApp({ onLogout }) {
     }));
   }
 
-  async function loadAdminData() {
-    const adminRequests = [
-      ["dashboard", "/dashboard"],
-      ["orders", "/orders"],
-      ["patients", "/patients"],
-      ["pharmacies", "/pharmacies"],
-      ["drivers", "/drivers"],
-      ["catalog", "/catalog"],
-      ["users", "/users"],
-      ["sponsors", "/sponsors"],
-      ["settings", "/settings/overview"]
-    ];
+  async function loadDashboardData() {
+    const dashboardData = await request("/dashboard");
+    setDashboard(dashboardData);
+  }
 
-    const settled = await Promise.allSettled(adminRequests.map(([, path]) => request(path)));
-    const failed = settled.find((result) => result.status === "rejected");
-    if (failed) {
-      const failedIndex = settled.indexOf(failed);
-      const [failedLabel] = adminRequests[failedIndex];
-      throw new Error(`Chargement admin impossible: ${failedLabel}`);
+  async function loadAdminSection(section) {
+    if (section === "overview") {
+      await loadDashboardData();
+      return;
     }
 
-    const [dashboardData, orders, patients, pharmacies, drivers, catalog, users, sponsors, settingsOverview] = settled.map((result) => result.value);
-    setDashboard(dashboardData);
-    setEntities({ orders, patients, pharmacies, drivers, catalog, users, sponsors });
-    setSettingsData(settingsOverview);
-    if (settingsOverview?.whatsappSettings) {
-      setWhatsappDraft(settingsOverview.whatsappSettings);
+    if (section === "settings") {
+      const settingsOverview = await request("/settings/overview");
+      setSettingsData(settingsOverview);
+      if (settingsOverview?.whatsappSettings) {
+        setWhatsappDraft(settingsOverview.whatsappSettings);
+      }
+      return;
+    }
+
+    const endpoint = sectionRequestMap[section];
+    if (!endpoint) return;
+
+    const rows = await request(endpoint);
+    setEntities((current) => ({
+      ...current,
+      [section]: rows
+    }));
+  }
+
+  async function refreshAdminView(section = activeSection) {
+    setError("");
+    try {
+      await loadDashboardData();
+      await loadAdminSection(section);
+    } catch (loadError) {
+      const label = section === "overview" ? "dashboard" : section;
+      setError(`Chargement admin impossible: ${label}`);
     }
   }
 
   useEffect(() => {
-    loadAdminData().catch((loadError) => setError(loadError.message));
+    refreshAdminView("overview");
   }, []);
+
+  useEffect(() => {
+    if (activeSection === "overview") return;
+    refreshAdminView(activeSection);
+  }, [activeSection]);
 
   const filteredRows = useMemo(() => {
     const rows = entities[activeSection] ?? [];
@@ -1523,7 +1562,7 @@ function AdminApp({ onLogout }) {
       }
 
       setAdminModal(null);
-      loadAdminData().catch(() => {});
+      refreshAdminView(adminModal.entity === "settings" ? "settings" : adminModal.entity);
     } catch (saveError) {
       setError(saveError.message);
     } finally {
@@ -1540,7 +1579,7 @@ function AdminApp({ onLogout }) {
       await request(`${config.endpoint}/${adminModal.rowId}`, { method: "DELETE" });
       removeEntityRow(adminModal.entity, adminModal.rowId);
       setAdminModal(null);
-      loadAdminData().catch(() => {});
+      refreshAdminView(adminModal.entity);
     } catch (deleteError) {
       setError(deleteError.message);
     } finally {
@@ -1559,7 +1598,7 @@ function AdminApp({ onLogout }) {
         })
       });
       mergeEntityRow("sponsors", updatedSponsor);
-      loadAdminData().catch(() => {});
+      refreshAdminView("sponsors");
     } catch (toggleError) {
       setError(toggleError.message);
     }
@@ -1570,7 +1609,7 @@ function AdminApp({ onLogout }) {
     setError("");
     try {
       await request(`/settings/${group}/${rowId}/${action}`, { method: "POST" });
-      await loadAdminData();
+      await refreshAdminView("settings");
     } catch (reviewError) {
       setError(reviewError.message);
     } finally {
@@ -1588,7 +1627,7 @@ function AdminApp({ onLogout }) {
       const config = adminEntityConfig[entityName];
       await request(`${config.endpoint}/${rowId}`, { method: "DELETE" });
       removeEntityRow(entityName, rowId);
-      loadAdminData().catch(() => {});
+      refreshAdminView(entityName);
     } catch (deleteError) {
       setError(deleteError.message);
     } finally {
@@ -1637,7 +1676,7 @@ function AdminApp({ onLogout }) {
         method: "POST",
         body: JSON.stringify(payload)
       });
-      await loadAdminData();
+      await refreshAdminView(activeSection);
     } catch (restoreError) {
       setError(restoreError.message || "Sauvegarde invalide");
     } finally {
@@ -1676,7 +1715,7 @@ function AdminApp({ onLogout }) {
         method: "POST",
         body: JSON.stringify({ action })
       });
-      await loadAdminData();
+      await refreshAdminView("orders");
     } catch (whatsappError) {
       setError(whatsappError.message);
     }
@@ -1692,7 +1731,7 @@ function AdminApp({ onLogout }) {
       if (whatsappAction) {
         await triggerOrderWhatsapp(orderId, whatsappAction);
       }
-      await loadAdminData();
+      await refreshAdminView("orders");
     } catch (statusError) {
       setError(statusError.message);
     }
