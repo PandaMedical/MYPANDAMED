@@ -245,10 +245,8 @@ function loadImageFromDataUrl(dataUrl) {
   });
 }
 
-async function optimizeImageFile(file, { maxWidth, maxHeight, type = "image/webp", quality = 0.9, maxBytes = 700_000 }) {
+async function optimizeImageFile(file, { maxWidth, maxHeight, type = "image/webp", quality = 0.82 }) {
   const originalDataUrl = await readFileAsDataUrl(file);
-  if (originalDataUrl.length <= maxBytes) return originalDataUrl;
-
   const image = await loadImageFromDataUrl(originalDataUrl);
   const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
   const targetWidth = Math.max(1, Math.round(image.width * scale));
@@ -1461,16 +1459,26 @@ function AdminApp({ onLogout }) {
   function updateCatalogImage(event) {
     const file = event.target.files?.[0];
     if (!file) return;
-    optimizeImageFile(file, { maxWidth: 900, maxHeight: 900, maxBytes: 900_000 })
-      .then((result) => updateAdminField("image", result))
+    optimizeImageFile(file, { maxWidth: 900, maxHeight: 900 })
+      .then((result) => {
+        if (result.length > 900_000) {
+          throw new Error("L image produit est encore trop volumineuse. Utilisez une image plus legere.");
+        }
+        updateAdminField("image", result);
+      })
       .catch((error) => setError(error.message));
   }
 
   function updateSponsorLogo(event) {
     const file = event.target.files?.[0];
     if (!file) return;
-    optimizeImageFile(file, { maxWidth: 720, maxHeight: 320, maxBytes: 600_000 })
-      .then((result) => updateAdminField("logo", result))
+    optimizeImageFile(file, { maxWidth: 420, maxHeight: 180 })
+      .then((result) => {
+        if (result.length > 240_000) {
+          throw new Error("Le logo est encore trop volumineux. Reduisez-le puis reessayez.");
+        }
+        updateAdminField("logo", result);
+      })
       .catch((error) => setError(error.message));
   }
 
@@ -1495,6 +1503,9 @@ function AdminApp({ onLogout }) {
       }
       if (adminModal.entity === "sponsors") {
         Object.assign(body, buildSponsorPayload(body));
+        if (String(body.logo ?? "").startsWith("data:image") && String(body.logo).length > 240_000) {
+          throw new Error("Le logo est trop volumineux pour la sauvegarde. Utilisez une image plus legere.");
+        }
       }
 
       if (adminModal.rowId) {
