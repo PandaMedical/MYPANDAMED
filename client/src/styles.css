@@ -2,9 +2,10 @@
   --blue-900: #1f4f9c;
   --blue-700: #2967c9;
   --blue-500: #52aee8;
+  --night-blue: #15234d;
   --gold-500: #f5b633;
   --green-500: #2bbf69;
-  --bg: #edf3fb;
+  --bg: #15234d;
   --panel: #ffffff;
   --text: #20406f;
   --muted: #8f97ab;
@@ -20,7 +21,7 @@
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #f6f9fe, #edf3fb);
+  background: #15234d;
 }
 
 button,
@@ -33,6 +34,9 @@ select {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
+  background:
+    radial-gradient(circle at top right, rgba(82, 174, 232, 0.08), transparent 24%),
+    linear-gradient(180deg, #15234d 0%, #15234d 100%);
 }
 
 .store-header {
@@ -42,22 +46,24 @@ select {
   align-items: center;
   padding: 10px 16px;
   background:
-    linear-gradient(90deg, rgba(245, 182, 51, 0.12), transparent 20%),
-    linear-gradient(135deg, #1c4e9a, #2f67c7 68%, #cc8d2f);
+    radial-gradient(circle at 82% 18%, rgba(82, 174, 232, 0.14), transparent 16%),
+    radial-gradient(circle at 12% 50%, rgba(245, 182, 51, 0.12), transparent 18%),
+    linear-gradient(135deg, #122044, #162650 48%, #1b2f63 76%, #284786 100%);
 }
 
 .brand-panel,
 .sponsor-panel {
   min-height: 56px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 12px 28px rgba(16, 49, 98, 0.16);
+  box-shadow: 0 18px 36px rgba(5, 11, 28, 0.34);
 }
 
 .brand-panel {
   display: grid;
   place-items: center;
   padding: 8px 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(240, 245, 255, 0.92));
+  border: 1px solid rgba(166, 188, 235, 0.24);
 }
 
 .brand-panel img {
@@ -73,8 +79,11 @@ select {
   align-items: center;
   padding: 8px 12px;
   color: white;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(74, 109, 184, 0.12)),
+    linear-gradient(180deg, rgba(11, 21, 49, 0.78), rgba(24, 41, 86, 0.74));
+  border: 1px solid rgba(171, 196, 255, 0.14);
+  backdrop-filter: blur(10px);
 }
 
 .sponsor-logo {
@@ -83,11 +92,12 @@ select {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: white;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 245, 255, 0.94));
   color: var(--green-500);
   font-weight: 800;
   overflow: hidden;
   padding: 4px;
+  border: 1px solid rgba(181, 199, 236, 0.32);
 }
 
 .sponsor-logo-image {
@@ -131,7 +141,8 @@ select {
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .sponsor-meta {
@@ -185,31 +196,32 @@ select {
   min-height: 46px;
   padding: 0;
   color: white;
-  box-shadow: 0 10px 24px rgba(20, 39, 76, 0.18);
+  box-shadow: 0 14px 28px rgba(7, 17, 43, 0.34);
   font-size: 18px;
   display: grid;
   place-items: center;
 }
 
 .header-button.driver {
-  background: linear-gradient(135deg, #ffb126, #ff8c1a);
+  background: linear-gradient(135deg, #e9ab32, #cf8422);
 }
 
 .header-button.pharmacy {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  background: linear-gradient(135deg, #2db668, #1f8c53);
 }
 
 .header-button.login {
-  background: white;
-  color: var(--text);
+  background: linear-gradient(180deg, rgba(247, 250, 255, 0.98), rgba(232, 239, 252, 0.94));
+  color: #16254f;
 }
 
 .cart-button {
   min-height: 46px;
   min-width: 70px;
   padding: 0 10px;
-  background: white;
-  color: var(--text);
+  background: linear-gradient(180deg, rgba(247, 250, 255, 0.98), rgba(232, 239, 252, 0.94));
+  color: #16254f;
+  box-shadow: 0 14px 28px rgba(7, 17, 43, 0.24);
   display: flex;
   gap: 8px;
   align-items: center;
@@ -233,6 +245,7 @@ select {
   grid-template-columns: 200px 1fr;
   gap: 18px;
   padding: 18px 0 0;
+  background: transparent;
 }
 
 .filters-panel {
@@ -240,8 +253,8 @@ select {
   align-content: start;
   gap: 18px;
   padding: 0 14px 14px;
-  background: linear-gradient(180deg, #f5f8fe, #eef3fb);
-  border-right: 1px solid rgba(62, 111, 190, 0.08);
+  background: linear-gradient(180deg, rgba(245, 248, 254, 0.94), rgba(232, 238, 249, 0.92));
+  border-right: 1px solid rgba(116, 144, 205, 0.12);
 }
 
 .search-input,
@@ -300,11 +313,13 @@ select {
 }
 
 .product-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(234, 240, 251, 0.95)),
+    linear-gradient(135deg, rgba(21, 35, 77, 0.04), transparent 42%);
+  border: 1px solid rgba(109, 135, 196, 0.2);
   border-radius: 16px;
   padding: 10px;
-  box-shadow: 0 14px 36px rgba(36, 75, 135, 0.08);
+  box-shadow: 0 18px 34px rgba(6, 16, 44, 0.22);
   display: grid;
   gap: 8px;
   min-height: 214px;
@@ -315,9 +330,12 @@ select {
   border-radius: 14px;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #ffffff, #f4f7fc);
+  background:
+    radial-gradient(circle at top, rgba(82, 174, 232, 0.16), transparent 38%),
+    linear-gradient(180deg, #fdfefe, #e7eef9);
   overflow: hidden;
   padding: 6px;
+  border: 1px solid rgba(181, 199, 236, 0.24);
 }
 
 .product-image {
@@ -382,10 +400,11 @@ select {
   width: fit-content;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #eaf2ff;
-  color: var(--blue-700);
+  background: linear-gradient(180deg, rgba(223, 233, 252, 0.92), rgba(209, 223, 248, 0.92));
+  color: #19356f;
   font-size: 9px;
   font-weight: 700;
+  border: 1px solid rgba(120, 149, 208, 0.14);
 }
 
 .product-card h3 {
@@ -393,6 +412,7 @@ select {
   font-family: "Nunito", sans-serif;
   font-size: 13px;
   line-height: 1.15;
+  color: #14254f;
 }
 
 .product-card p {
@@ -414,19 +434,20 @@ select {
 .product-footer strong {
   font-family: "Nunito", sans-serif;
   font-size: 11px;
-  color: #169154;
+  color: #1a8d57;
 }
 
 .product-footer button {
   min-height: 32px;
   min-width: 32px;
   padding: 0;
-  background: linear-gradient(135deg, var(--blue-700), var(--blue-900));
+  background: linear-gradient(135deg, #213a78, #15234d);
   color: white;
   font-size: 18px;
   border-radius: 10px;
   display: grid;
   place-items: center;
+  box-shadow: 0 10px 22px rgba(10, 20, 48, 0.22);
 }
 
 .store-footer {
@@ -435,10 +456,10 @@ select {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #9aa0b1;
+  color: rgba(255, 255, 255, 0.82);
   font-size: 11px;
-  background: white;
-  border-top: 1px solid rgba(53, 95, 168, 0.08);
+  background: rgba(21, 35, 77, 0.92);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .modal-overlay {
@@ -1075,23 +1096,29 @@ select {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 220px 1fr;
-  background: #f4f7fc;
+  background:
+    radial-gradient(circle at top right, rgba(82, 174, 232, 0.08), transparent 20%),
+    linear-gradient(180deg, #132146 0%, #162650 55%, #1a2e60 100%);
 }
 
 .admin-sidebar {
   padding: 14px;
-  background: linear-gradient(180deg, #41536f, #2f67c7);
+  background:
+    radial-gradient(circle at top left, rgba(82, 174, 232, 0.08), transparent 20%),
+    linear-gradient(180deg, rgba(8, 15, 38, 0.96), rgba(18, 31, 66, 0.96));
   color: white;
   display: grid;
   align-content: start;
   gap: 14px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .admin-logo {
   width: 100%;
-  background: white;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 245, 255, 0.94));
   border-radius: 14px;
   padding: 8px;
+  border: 1px solid rgba(181, 199, 236, 0.2);
 }
 
 .admin-nav {
@@ -1114,7 +1141,7 @@ select {
 
 .admin-nav-item.active,
 .admin-nav-item:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(100, 133, 204, 0.18));
   color: white;
 }
 
@@ -1123,6 +1150,9 @@ select {
   display: grid;
   align-content: start;
   gap: 12px;
+  background:
+    radial-gradient(circle at top right, rgba(82, 174, 232, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(240, 245, 255, 0.98), rgba(229, 236, 248, 0.96));
 }
 
 .admin-topbar {
@@ -1136,7 +1166,7 @@ select {
   margin: 0;
   font-family: "Nunito", sans-serif;
   font-size: 20px;
-  color: #28446e;
+  color: #14254f;
 }
 
 .admin-topbar p {
@@ -1168,7 +1198,7 @@ select {
   display: inline-grid;
   place-items: center;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2967c9, #1f4f9c);
+  background: linear-gradient(135deg, #213a78, #15234d);
   color: white;
   text-decoration: none;
   font-size: 16px;
@@ -1191,7 +1221,7 @@ select {
 }
 
 .admin-primary-button {
-  background: linear-gradient(135deg, #2967c9, #1f4f9c);
+  background: linear-gradient(135deg, #213a78, #15234d);
   color: white;
 }
 
@@ -1201,8 +1231,9 @@ select {
 }
 
 .admin-table-button {
-  background: #eef3fb;
-  color: #365b92;
+  background: linear-gradient(180deg, rgba(224, 233, 251, 0.95), rgba(212, 223, 246, 0.95));
+  color: #203d79;
+  border: 1px solid rgba(128, 155, 212, 0.2);
 }
 
 .admin-overview,
@@ -1226,9 +1257,12 @@ select {
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #dbe5f3;
+  border: 1px solid rgba(126, 153, 208, 0.18);
   border-radius: 14px;
-  background: #f9fbff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(237, 243, 252, 0.92)),
+    linear-gradient(135deg, rgba(21, 35, 77, 0.03), transparent 44%);
+  box-shadow: 0 12px 28px rgba(8, 18, 44, 0.1);
 }
 
 .admin-settings-card strong {
@@ -1264,14 +1298,16 @@ select {
   display: grid;
   gap: 10px;
   padding: 14px;
-  border: 1px solid #bfe8c8;
+  border: 1px solid rgba(120, 181, 214, 0.26);
   border-radius: 16px;
-  background: linear-gradient(180deg, #effcf2, #e4f8e9);
+  background:
+    linear-gradient(180deg, rgba(240, 248, 255, 0.98), rgba(226, 238, 252, 0.96)),
+    radial-gradient(circle at top right, rgba(43, 191, 105, 0.08), transparent 24%);
 }
 
 .whatsapp-compose-card strong {
   font-size: 12px;
-  color: #198a47;
+  color: #183a73;
 }
 
 .whatsapp-row {
@@ -1299,7 +1335,7 @@ select {
   min-width: 92px;
   border: 0;
   border-radius: 12px;
-  background: linear-gradient(135deg, #2dc65f, #1ea64f);
+  background: linear-gradient(135deg, #213a78, #15234d);
   color: white;
   font-weight: 700;
   cursor: pointer;
@@ -1326,9 +1362,9 @@ select {
   min-height: 28px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid #a9dfb9;
+  border: 1px solid rgba(128, 155, 212, 0.24);
   background: white;
-  color: #1b8f4a;
+  color: #1b3d7a;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -1350,8 +1386,8 @@ select {
   gap: 2px;
   padding: 10px;
   border-radius: 12px;
-  background: #f4f8ff;
-  border: 1px solid #dbe5f3;
+  background: linear-gradient(180deg, rgba(244, 248, 255, 0.98), rgba(232, 239, 251, 0.96));
+  border: 1px solid rgba(126, 153, 208, 0.18);
 }
 
 .whatsapp-log-item span,
