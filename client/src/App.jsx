@@ -834,6 +834,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   const [category, setCategory] = useState("all");
   const [therapeuticClass, setTherapeuticClass] = useState("all");
   const [cart, setCart] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
   const [pageError, setPageError] = useState("");
   const [authError, setAuthError] = useState("");
   const [driverError, setDriverError] = useState("");
@@ -884,6 +885,17 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   }, [catalog, search, category, therapeuticClass]);
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const cartItems = useMemo(
+    () =>
+      cart
+        .map((entry) => {
+          const product = catalog.find((item) => item.id === entry.id);
+          return product ? { ...product, quantity: entry.quantity } : null;
+        })
+        .filter(Boolean),
+    [cart, catalog]
+  );
+  const cartTotal = cartItems.reduce((sum, item) => sum + Number(item.price || 0) * item.quantity, 0);
   const orderedSponsors = useMemo(() => {
     const activeSponsors = sponsors.filter((item) => item.is_active);
     return [...activeSponsors].sort((a, b) => {
@@ -925,6 +937,18 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       }
       return [...current, { id: item.id, quantity: 1 }];
     });
+  }
+
+  function updateCartQuantity(itemId, delta) {
+    setCart((current) =>
+      current
+        .map((entry) => (entry.id === itemId ? { ...entry, quantity: Math.max(0, entry.quantity + delta) } : entry))
+        .filter((entry) => entry.quantity > 0)
+    );
+  }
+
+  function clearCart() {
+    setCart([]);
   }
 
   function updateDriverField(name, value) {
@@ -1125,7 +1149,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
               ⎋
             </button>
           ) : null}
-          <button type="button" className="cart-button" title="Chariot des commandes" aria-label="Chariot des commandes">
+          <button type="button" className="cart-button" title="Chariot des commandes" aria-label="Chariot des commandes" onClick={() => setCartOpen(true)}>
             <span>🛒</span>
             <strong>{cartCount}</strong>
           </button>
@@ -1173,6 +1197,66 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         <span>Catalogue medicaments sans ordonnance et produits parapharmaceutiques</span>
         <span>v1.0 - Tous droits reserves</span>
       </footer>
+
+      {cartOpen ? (
+        <div className="modal-overlay" onClick={() => setCartOpen(false)}>
+          <div className="cart-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="cart-modal-head">
+              <h2>Mon panier</h2>
+              <button type="button" className="modal-close" onClick={() => setCartOpen(false)}>
+                Ã—
+              </button>
+            </div>
+
+            <div className="cart-modal-body">
+              {cartItems.length ? (
+                <>
+                  <div className="cart-items-list">
+                    {cartItems.map((item) => (
+                      <div key={item.id} className="cart-item">
+                        <div className="cart-item-copy">
+                          <strong>{item.name}</strong>
+                          <span>
+                            {item.quantity} x {Number(item.price).toLocaleString("fr-FR")} DA
+                          </span>
+                        </div>
+                        <div className="cart-item-actions">
+                          <button type="button" onClick={() => updateCartQuantity(item.id, -1)} aria-label={`Retirer un ${item.name}`}>
+                            −
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button type="button" onClick={() => updateCartQuantity(item.id, 1)} aria-label={`Ajouter un ${item.name}`}>
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="cart-summary">
+                    <strong>Total</strong>
+                    <span>{cartTotal.toLocaleString("fr-FR")} DA</span>
+                  </div>
+
+                  <div className="cart-footer-actions">
+                    <button type="button" className="secondary-action" onClick={clearCart}>
+                      Vider
+                    </button>
+                    <button type="button" className="primary-action login-action">
+                      Commander
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="cart-empty-state">
+                  <strong>Votre panier est vide</strong>
+                  <span>Ajoutez des produits pour preparer une commande.</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {driverModalOpen ? (
         <div className="modal-overlay" onClick={() => setDriverModalOpen(false)}>
