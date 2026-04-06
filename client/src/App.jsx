@@ -434,6 +434,36 @@ function getCatalogCategoryLabel(category) {
   }[String(category ?? "").toLowerCase()] ?? String(category ?? "-");
 }
 
+function getStatusBadgeClass(status) {
+  const normalized = String(status ?? "").toLowerCase();
+  if (["delivered", "livree", "approved", "actif", "online", "confirmed"].includes(normalized)) return "status-badge success";
+  if (["dispatch", "en livraison", "occupied", "occupee", "en_route"].includes(normalized)) return "status-badge info";
+  if (["pending", "en attente"].includes(normalized)) return "status-badge warning";
+  if (["cancelled", "annulee", "rejected", "refusee", "offline"].includes(normalized)) return "status-badge danger";
+  return "status-badge neutral";
+}
+
+function formatOrderDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
+function getTimelineStepIndex(status) {
+  const normalized = String(status ?? "").toLowerCase();
+  if (["pending", "en attente"].includes(normalized)) return 0;
+  if (["confirmed", "confirmee"].includes(normalized)) return 1;
+  if (["dispatch", "en livraison"].includes(normalized)) return 2;
+  if (["delivered", "livree"].includes(normalized)) return 3;
+  if (["cancelled", "annulee"].includes(normalized)) return -1;
+  return 0;
+}
+
 function parseDelimitedLine(line, delimiter) {
   const values = [];
   let current = "";
@@ -667,12 +697,16 @@ function openWhatsappUrl(url) {
 }
 
 function SimpleOrdersTable({ rows, actions }) {
+  const timelineLabels = ["En attente", "Confirmee", "En livraison", "Livree"];
+
   return (
     <div className="admin-table-shell">
       <table className="admin-table">
         <thead>
           <tr>
             <th>Commande</th>
+            <th>Pharmacie</th>
+            <th>Livreur</th>
             <th>Montant</th>
             <th>Statut</th>
             <th>Suivi</th>
@@ -683,16 +717,38 @@ function SimpleOrdersTable({ rows, actions }) {
           {rows.length ? (
             rows.map((row) => (
               <tr key={row.id}>
-                <td>{row.products}</td>
+                <td>
+                  <div className="order-line-main">{row.products}</div>
+                  <div className="order-line-sub">Le {formatOrderDate(row.created_at)}</div>
+                </td>
+                <td>{row.pharmacy_name ?? "-"}</td>
+                <td>{row.driver_name ?? "-"}</td>
                 <td>{Number(row.amount).toLocaleString("fr-FR")} DA</td>
-                <td>{row.status}</td>
-                <td>{row.pharmacy_name ?? row.driver_name ?? row.patient_name ?? "-"}</td>
+                <td>
+                  <span className={getStatusBadgeClass(row.status)}>
+                    {getOrderStatusLabel(row.status)}
+                  </span>
+                </td>
+                <td>
+                  {getTimelineStepIndex(row.status) >= 0 ? (
+                    <div className="order-timeline">
+                      {timelineLabels.map((label, index) => (
+                        <div key={label} className={index <= getTimelineStepIndex(row.status) ? "timeline-step active" : "timeline-step"}>
+                          <span className="timeline-dot" />
+                          <small>{label}</small>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="order-line-sub">Commande annulee</span>
+                  )}
+                </td>
                 {actions ? <td>{actions(row)}</td> : null}
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan={actions ? 5 : 4} className="admin-empty">
+              <td colSpan={actions ? 7 : 6} className="admin-empty">
                 Aucune commande
               </td>
             </tr>
