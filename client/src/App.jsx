@@ -913,6 +913,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   const [therapeuticClass, setTherapeuticClass] = useState("all");
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
   const [pageError, setPageError] = useState("");
   const [authError, setAuthError] = useState("");
   const [driverError, setDriverError] = useState("");
@@ -1027,6 +1028,64 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
   function clearCart() {
     setCart([]);
+  }
+
+  async function submitCartOrder() {
+    if (!cartItems.length) {
+      setPageError("Votre panier est vide.");
+      return;
+    }
+
+    if (!currentUser) {
+      setCartOpen(false);
+      setAuthTab("login");
+      setAuthError("");
+      setAuthFeedback("Connectez-vous ou inscrivez-vous comme patient pour finaliser la commande.");
+      setAuthFeedbackType("info");
+      openLoginModal();
+      return;
+    }
+
+    if (currentUser.role !== "patient") {
+      setPageError("Seul un compte patient peut passer une commande depuis le panier.");
+      return;
+    }
+
+    setCheckoutSubmitting(true);
+    setPageError("");
+
+    try {
+      const products = cartItems
+        .map((item) => `${item.name} x${item.quantity}`)
+        .join(", ");
+
+      await request("/orders", {
+        method: "POST",
+        body: JSON.stringify({
+          patient_id: currentUser.id,
+          products,
+          amount: cartTotal,
+          status: "pending",
+          channel: "web",
+          source: "web",
+          notes: "Commande creee depuis le panier front-end"
+        })
+      });
+
+      setCart([]);
+      setCartOpen(false);
+      setAuthFeedbackType("success");
+      setAuthFeedback("Votre commande a bien ete enregistree.");
+
+      if (typeof window !== "undefined") {
+        window.history.pushState({}, "", "/patient");
+      }
+      onLogin({ ...currentUser, redirectPath: "/patient" });
+    } catch (checkoutError) {
+      setPageError(checkoutError.message);
+    } finally {
+      setCheckoutSubmitting(false);
+    }
   }
 
   function updateDriverField(name, value) {
@@ -1320,8 +1379,8 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
                     <button type="button" className="secondary-action" onClick={clearCart}>
                       Vider
                     </button>
-                    <button type="button" className="primary-action login-action">
-                      Commander
+                    <button type="button" className="primary-action login-action" onClick={submitCartOrder} disabled={checkoutSubmitting}>
+                      {checkoutSubmitting ? "Envoi..." : "Commander"}
                     </button>
                   </div>
                 </>
