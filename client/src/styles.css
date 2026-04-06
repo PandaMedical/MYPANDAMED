@@ -791,6 +791,43 @@ select {
   color: #66748f;
 }
 
+.checkout-modal {
+  width: min(460px, 100%);
+}
+
+.checkout-body {
+  gap: 12px;
+}
+
+.checkout-field {
+  display: grid;
+  gap: 6px;
+}
+
+.checkout-field span {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5a6b94;
+}
+
+.checkout-field select,
+.checkout-field textarea {
+  width: 100%;
+  border: 1px solid rgba(117, 143, 197, 0.3);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  color: #14254f;
+  background: rgba(248, 250, 255, 0.96);
+}
+
+.checkout-field textarea {
+  min-height: 82px;
+  resize: vertical;
+}
+
 .login-head {
   min-height: 54px;
   padding: 0 16px;

@@ -913,7 +913,15 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   const [therapeuticClass, setTherapeuticClass] = useState("all");
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
+  const [checkoutPharmacies, setCheckoutPharmacies] = useState([]);
+  const [checkoutForm, setCheckoutForm] = useState({
+    pharmacy_id: "",
+    address: "",
+    notes: "",
+    channel: "whatsapp"
+  });
   const [pageError, setPageError] = useState("");
   const [authError, setAuthError] = useState("");
   const [driverError, setDriverError] = useState("");
@@ -1030,7 +1038,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     setCart([]);
   }
 
-  async function submitCartOrder() {
+  async function openCheckoutModal() {
     if (!cartItems.length) {
       setPageError("Votre panier est vide.");
       return;
@@ -1051,10 +1059,42 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       return;
     }
 
+    try {
+      setPageError("");
+      const pharmacies = await request("/pharmacies");
+      const activePharmacies = pharmacies.filter((item) => String(item.status ?? "").toLowerCase() !== "offline");
+      setCheckoutPharmacies(activePharmacies);
+      setCheckoutForm((current) => ({
+        ...current,
+        pharmacy_id: current.pharmacy_id || String(activePharmacies[0]?.id ?? ""),
+        address: current.address || "",
+        notes: current.notes || "",
+        channel: current.channel || "whatsapp"
+      }));
+      setCartOpen(false);
+      setCheckoutModalOpen(true);
+    } catch (error) {
+      setPageError(error.message);
+    }
+  }
+
+  async function submitCartOrder() {
+    if (!cartItems.length) {
+      setPageError("Votre panier est vide.");
+      return;
+    }
+
     setCheckoutSubmitting(true);
     setPageError("");
 
     try {
+      if (!checkoutForm.pharmacy_id) {
+        throw new Error("Choisissez une pharmacie pour finaliser la commande.");
+      }
+      if (!checkoutForm.address.trim()) {
+        throw new Error("Renseignez l adresse de livraison.");
+      }
+
       const products = cartItems
         .map((item) => `${item.name} x${item.quantity}`)
         .join(", ");
@@ -1063,17 +1103,25 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         method: "POST",
         body: JSON.stringify({
           patient_id: currentUser.id,
+          pharmacy_id: Number(checkoutForm.pharmacy_id),
           products,
           amount: cartTotal,
           status: "pending",
-          channel: "web",
+          channel: checkoutForm.channel,
           source: "web",
-          notes: "Commande creee depuis le panier front-end"
+          notes: [checkoutForm.address.trim(), checkoutForm.notes.trim()].filter(Boolean).join(" | ")
         })
       });
 
       setCart([]);
       setCartOpen(false);
+      setCheckoutModalOpen(false);
+      setCheckoutForm({
+        pharmacy_id: "",
+        address: "",
+        notes: "",
+        channel: "whatsapp"
+      });
       setAuthFeedbackType("success");
       setAuthFeedback("Votre commande a bien ete enregistree.");
 
@@ -1086,6 +1134,10 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     } finally {
       setCheckoutSubmitting(false);
     }
+  }
+
+  function updateCheckoutField(name, value) {
+    setCheckoutForm((current) => ({ ...current, [name]: value }));
   }
 
   function updateDriverField(name, value) {
@@ -1379,8 +1431,8 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
                     <button type="button" className="secondary-action" onClick={clearCart}>
                       Vider
                     </button>
-                    <button type="button" className="primary-action login-action" onClick={submitCartOrder} disabled={checkoutSubmitting}>
-                      {checkoutSubmitting ? "Envoi..." : "Commander"}
+                    <button type="button" className="primary-action login-action" onClick={openCheckoutModal} disabled={checkoutSubmitting}>
+                      Commander
                     </button>
                   </div>
                 </>
@@ -1390,6 +1442,74 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
                   <span>Ajoutez des produits pour preparer une commande.</span>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {checkoutModalOpen ? (
+        <div className="modal-overlay" onClick={() => setCheckoutModalOpen(false)}>
+          <div className="cart-modal checkout-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="cart-modal-head">
+              <h2>Valider la commande</h2>
+              <button type="button" className="modal-close" onClick={() => setCheckoutModalOpen(false)}>
+                Ã—
+              </button>
+            </div>
+
+            <div className="cart-modal-body checkout-body">
+              <label className="checkout-field">
+                <span>Choix pharmacie</span>
+                <select value={checkoutForm.pharmacy_id} onChange={(event) => updateCheckoutField("pharmacy_id", event.target.value)}>
+                  <option value="">Selectionner</option>
+                  {checkoutPharmacies.map((pharmacy) => (
+                    <option key={pharmacy.id} value={pharmacy.id}>
+                      {pharmacy.name} - {pharmacy.zone_name || pharmacy.area || pharmacy.wilaya || "Annaba"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="checkout-field">
+                <span>Adresse de livraison</span>
+                <textarea
+                  value={checkoutForm.address}
+                  onChange={(event) => updateCheckoutField("address", event.target.value)}
+                  placeholder="Saisissez l adresse exacte de livraison"
+                />
+              </label>
+
+              <label className="checkout-field">
+                <span>Notes patient</span>
+                <textarea
+                  value={checkoutForm.notes}
+                  onChange={(event) => updateCheckoutField("notes", event.target.value)}
+                  placeholder="Informations utiles pour la pharmacie ou le livreur"
+                />
+              </label>
+
+              <label className="checkout-field">
+                <span>Mode de contact</span>
+                <select value={checkoutForm.channel} onChange={(event) => updateCheckoutField("channel", event.target.value)}>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="call">Appel</option>
+                  <option value="email">Email</option>
+                </select>
+              </label>
+
+              <div className="cart-summary">
+                <strong>Total</strong>
+                <span>{cartTotal.toLocaleString("fr-FR")} DA</span>
+              </div>
+
+              <div className="cart-footer-actions">
+                <button type="button" className="secondary-action" onClick={() => setCheckoutModalOpen(false)}>
+                  Annuler
+                </button>
+                <button type="button" className="primary-action login-action" onClick={submitCartOrder} disabled={checkoutSubmitting}>
+                  {checkoutSubmitting ? "Envoi..." : "Confirmer"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
