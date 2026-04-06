@@ -383,6 +383,12 @@ function sanitizePayload(columns, payload) {
   return Object.fromEntries(columns.map((column) => [column, payload[column] ?? null]));
 }
 
+function parseNullableInt(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 async function findByPhoneOrEmail(tableName, phone, email) {
   const normalizedEmail = String(email ?? "").trim();
   if (normalizedEmail) {
@@ -1186,9 +1192,9 @@ app.post("/api/orders", async (req, res, next) => {
       `INSERT INTO orders (patient_id, pharmacy_id, driver_id, products, amount, status, channel, source, notes, delivered_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        payload.patient_id ?? null,
-        payload.pharmacy_id ?? null,
-        payload.driver_id ?? null,
+        parseNullableInt(payload.patient_id),
+        parseNullableInt(payload.pharmacy_id),
+        parseNullableInt(payload.driver_id),
         payload.products ?? "",
         Number(payload.amount ?? 0),
         payload.status ?? "pending",
@@ -1212,9 +1218,9 @@ app.put("/api/orders/:id", async (req, res, next) => {
        SET patient_id = ?, pharmacy_id = ?, driver_id = ?, products = ?, amount = ?, status = ?, channel = ?, source = ?, notes = ?, delivered_at = ?, updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [
-        payload.patient_id ?? null,
-        payload.pharmacy_id ?? null,
-        payload.driver_id ?? null,
+        parseNullableInt(payload.patient_id),
+        parseNullableInt(payload.pharmacy_id),
+        parseNullableInt(payload.driver_id),
         payload.products ?? "",
         Number(payload.amount ?? 0),
         payload.status ?? "pending",

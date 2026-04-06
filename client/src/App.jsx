@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const API_BASE = "/api";
 
@@ -432,6 +432,82 @@ function getCatalogCategoryLabel(category) {
     otc: "Medicaments sans ordonnance",
     para: "Parapharmacie"
   }[String(category ?? "").toLowerCase()] ?? String(category ?? "-");
+}
+
+function parseDelimitedLine(line, delimiter) {
+  const values = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+
+    if (char === "\"") {
+      if (inQuotes && next === "\"") {
+        current += "\"";
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === delimiter && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+  return values;
+}
+
+function parseCatalogSpreadsheet(text) {
+  const normalized = String(text ?? "").replace(/^\uFEFF/, "");
+  const lines = normalized
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    throw new Error("Le fichier est vide ou ne contient pas de lignes de donnees.");
+  }
+
+  const delimiter = lines[0].includes(";") ? ";" : lines[0].includes("\t") ? "\t" : ",";
+  const headers = parseDelimitedLine(lines[0], delimiter).map((item) => item.toLowerCase());
+  const required = ["name", "category", "price"];
+
+  for (const field of required) {
+    if (!headers.includes(field)) {
+      throw new Error(`Colonne obligatoire manquante : ${field}`);
+    }
+  }
+
+  return lines.slice(1).map((line, rowIndex) => {
+    const values = parseDelimitedLine(line, delimiter);
+    const row = Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]));
+    const price = Number(String(row.price ?? "0").replace(",", "."));
+
+    if (!row.name?.trim()) throw new Error(`Ligne ${rowIndex + 2} : nom manquant`);
+    if (!row.category?.trim()) throw new Error(`Ligne ${rowIndex + 2} : categorie manquante`);
+    if (!Number.isFinite(price)) throw new Error(`Ligne ${rowIndex + 2} : prix invalide`);
+
+    return {
+      name: row.name.trim(),
+      category: row.category.trim().toLowerCase() === "para" ? "para" : "otc",
+      form: row.form?.trim() ?? "",
+      unit: row.unit?.trim() ?? "",
+      price,
+      reference: row.reference?.trim() ?? "",
+      image: row.image?.trim() ?? "",
+      contraindications: row.contraindications?.trim() ?? "",
+      is_active: String(row.is_active ?? "1").trim() === "0" ? 0 : 1
+    };
+  });
 }
 
 function AdminMetric({ label, value }) {
@@ -1549,6 +1625,7 @@ function AdminApp({ onLogout }) {
     whatsappLogs: []
   });
   const [settingsBusy, setSettingsBusy] = useState(false);
+  const [catalogImportBusy, setCatalogImportBusy] = useState(false);
   const [restorePayload, setRestorePayload] = useState("");
   const [whatsappDraft, setWhatsappDraft] = useState({
     sender_phone: "",
@@ -1563,6 +1640,7 @@ function AdminApp({ onLogout }) {
   });
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [whatsappMessage, setWhatsappMessage] = useState("");
+  const catalogImportInputRef = useRef(null);
   const [selectedAdminPharmacy, setSelectedAdminPharmacy] = useState(null);
   const [selectedAdminLocation, setSelectedAdminLocation] = useState(null);
 
@@ -1748,6 +1826,9 @@ function AdminApp({ onLogout }) {
       const body = { ...adminModal.values };
       if (adminModal.entity === "orders") {
         body.amount = Number(body.amount || 0);
+        body.patient_id = body.patient_id ? Number(body.patient_id) : null;
+        body.pharmacy_id = body.pharmacy_id ? Number(body.pharmacy_id) : null;
+        body.driver_id = body.driver_id ? Number(body.driver_id) : null;
       }
       if (adminModal.entity === "drivers") {
         body.rating = Number(body.rating || 0);
@@ -1958,6 +2039,46 @@ function AdminApp({ onLogout }) {
     setError("L'envoi direct passe maintenant par l'API WhatsApp Business configuree sur vos actions metier.");
   }
 
+  function downloadCatalogTemplate() {
+    const template = [
+      "name;category;form;unit;price;reference;image;contraindications;is_active",
+      "Doliprane 1g;otc;Comprime;boite;280;DOL1G;;Insuffisance hepatique severe;1",
+      "Masque FFP2;para;Masque;boite;890;FFP2;;;1"
+    ].join("\n");
+    const blob = new Blob([template], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "catalogue-import-modele.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function importCatalogFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setCatalogImportBusy(true);
+    setError("");
+    try {
+      const text = await file.text();
+      const rows = parseCatalogSpreadsheet(text);
+      for (const row of rows) {
+        await request("/catalog", {
+          method: "POST",
+          body: JSON.stringify(row)
+        });
+      }
+      if (catalogImportInputRef.current) {
+        catalogImportInputRef.current.value = "";
+      }
+      await refreshAdminView("catalog");
+    } catch (importError) {
+      setError(`Import catalogue impossible : ${importError.message}`);
+    } finally {
+      setCatalogImportBusy(false);
+    }
+  }
+
   async function triggerOrderWhatsapp(orderId, action) {
     try {
       await request(`/orders/${orderId}/whatsapp`, {
@@ -2007,6 +2128,23 @@ function AdminApp({ onLogout }) {
           </div>
           <div className="admin-topbar-actions">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Recherche..." />
+            {activeSection === "catalog" ? (
+              <>
+                <input
+                  ref={catalogImportInputRef}
+                  type="file"
+                  accept=".csv,.txt"
+                  onChange={importCatalogFile}
+                  style={{ display: "none" }}
+                />
+                <button type="button" className="admin-table-button" onClick={downloadCatalogTemplate} title="Telecharger le modele d import" aria-label="Telecharger le modele d import">
+                  ⇩
+                </button>
+                <button type="button" className="admin-table-button" onClick={() => catalogImportInputRef.current?.click()} title="Importer un fichier Excel compatible" aria-label="Importer un fichier Excel compatible" disabled={catalogImportBusy}>
+                  ⇪
+                </button>
+              </>
+            ) : null}
             {adminEntityConfig[activeSection] ? (
               <button type="button" className="admin-primary-button" onClick={() => openAdminModal(activeSection)} title="Nouveau" aria-label="Nouveau">
                 ＋
