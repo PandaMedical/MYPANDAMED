@@ -1834,17 +1834,21 @@ function AdminApp({ onLogout }) {
       });
       setSettingsData((current) => {
         const nextStatus = action === "approve" ? "approved" : "rejected";
-        const mapRows = (rows) =>
-          rows.map((row) => (String(row.id) === String(rowId) ? { ...row, status: nextStatus } : row));
+        const updateOrRemoveRows = (rows) =>
+          (rows ?? []).flatMap((row) => {
+            if (String(row.id) !== String(rowId)) return [row];
+            if (action === "approve" || action === "reject") return [];
+            return [{ ...row, status: nextStatus }];
+          });
 
         if (group === "driver-applications") {
-          return { ...current, driverApplications: mapRows(current.driverApplications ?? []) };
+          return { ...current, driverApplications: updateOrRemoveRows(current.driverApplications) };
         }
         if (group === "pharmacy-applications") {
-          return { ...current, pharmacyApplications: mapRows(current.pharmacyApplications ?? []) };
+          return { ...current, pharmacyApplications: updateOrRemoveRows(current.pharmacyApplications) };
         }
         if (group === "patient-registrations") {
-          return { ...current, patientRegistrations: mapRows(current.patientRegistrations ?? []) };
+          return { ...current, patientRegistrations: updateOrRemoveRows(current.patientRegistrations) };
         }
         return current;
       });

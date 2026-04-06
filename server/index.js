@@ -1154,6 +1154,15 @@ for (const [routeName, config] of Object.entries(entityConfig)) {
 
   app.delete(`/api/${routeName}/:id`, async (req, res, next) => {
     try {
+      if (routeName === "pharmacies") {
+        await run("UPDATE orders SET pharmacy_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE pharmacy_id = ?", [req.params.id]);
+      }
+      if (routeName === "drivers") {
+        await run("UPDATE orders SET driver_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE driver_id = ?", [req.params.id]);
+      }
+      if (routeName === "patients") {
+        await run("UPDATE orders SET patient_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE patient_id = ?", [req.params.id]);
+      }
       await run(`DELETE FROM ${config.table} WHERE id = ?`, [req.params.id]);
       res.status(204).send();
     } catch (error) {
