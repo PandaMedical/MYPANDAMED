@@ -1404,19 +1404,19 @@ app.post("/api/settings/driver-applications/:id/approve", async (req, res, next)
     if (!application) return res.status(404).json({ message: "Candidature introuvable" });
     if (application.status === "approved") return res.json({ ok: true, status: "approved" });
 
-    await run(
-      `INSERT INTO drivers (first_name, last_name, phone, email, zone_name, vehicle, status, rating, packages_count, revenue)
-       VALUES (?, ?, ?, ?, ?, ?, 'actif', 0, 0, 0)`,
-      [
-        application.first_name,
-        application.last_name,
-        application.phone,
-        application.email ?? null,
-        application.phone,
-        application.delivery_zone ?? application.wilaya ?? null,
-        String(application.vehicle ?? "Moto").toLowerCase()
-      ]
-    );
+      await run(
+        `INSERT INTO drivers (first_name, last_name, phone, email, password, zone_name, vehicle, status, rating, packages_count, revenue)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'actif', 0, 0, 0)`,
+        [
+          application.first_name,
+          application.last_name,
+          application.phone,
+          application.email ?? null,
+          application.password ?? application.phone,
+          application.delivery_zone ?? application.wilaya ?? null,
+          String(application.vehicle ?? "Moto").toLowerCase()
+        ]
+      );
     await run("UPDATE driver_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
     res.json({ ok: true, status: "approved" });
   } catch (error) {
@@ -1439,22 +1439,21 @@ app.post("/api/settings/pharmacy-applications/:id/approve", async (req, res, nex
     if (!application) return res.status(404).json({ message: "Demande introuvable" });
     if (application.status === "approved") return res.json({ ok: true, status: "approved" });
 
-    await run(
-      `INSERT INTO pharmacies (name, manager_name, phone, whatsapp, email, address, wilaya, area, zone_name, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'online')`,
-      [
-        application.pharmacy_name,
-        application.manager_name,
-        application.phone,
-        application.whatsapp ?? null,
-        application.email ?? null,
-        application.phone,
-        application.address,
-        application.wilaya ?? null,
-        application.service_area ?? null,
-        application.service_area ?? null
-      ]
-    );
+      await run(
+        `INSERT INTO pharmacies (name, manager_name, phone, whatsapp, email, address, wilaya, area, zone_name, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'online')`,
+        [
+          application.pharmacy_name,
+          application.manager_name,
+          application.phone,
+          application.whatsapp ?? null,
+          application.email ?? null,
+          application.address ?? null,
+          application.wilaya ?? null,
+          application.service_area ?? null,
+          application.service_area ?? null
+        ]
+      );
     await run("UPDATE pharmacy_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
     res.json({ ok: true, status: "approved" });
   } catch (error) {
