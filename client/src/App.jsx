@@ -391,6 +391,47 @@ function getDisplayStatusLabel(status) {
   return getReviewStatusLabel(status);
 }
 
+const roleLabels = {
+  admin: "Administrateur",
+  operateur: "Operateur",
+  pharmacien: "Pharmacien",
+  livreur: "Livreur",
+  pharmacy: "Pharmacie",
+  patient: "Patient",
+  driver: "Livreur"
+};
+
+function getRoleLabel(role) {
+  return roleLabels[String(role ?? "").toLowerCase()] ?? String(role ?? "-");
+}
+
+const channelLabels = {
+  whatsapp: "WhatsApp",
+  email: "Email",
+  call: "Appel"
+};
+
+function getChannelLabel(channel) {
+  return channelLabels[String(channel ?? "").toLowerCase()] ?? String(channel ?? "-");
+}
+
+const sourceLabels = {
+  web: "Site web",
+  wa: "WhatsApp",
+  call: "Appel"
+};
+
+function getSourceLabel(source) {
+  return sourceLabels[String(source ?? "").toLowerCase()] ?? String(source ?? "-");
+}
+
+function getCatalogCategoryLabel(category) {
+  return {
+    otc: "Medicaments sans ordonnance",
+    para: "Parapharmacie"
+  }[String(category ?? "").toLowerCase()] ?? String(category ?? "-");
+}
+
 function AdminMetric({ label, value }) {
   return (
     <div className="admin-metric">
@@ -2122,7 +2163,7 @@ function AdminApp({ onLogout }) {
               renderRow={(row) => (
                 <tr key={row.id}>
                   <td>{row.name}</td>
-                  <td>{row.category}</td>
+                  <td>{getCatalogCategoryLabel(row.category)}</td>
                   <td>{row.form}</td>
                   <td>{Number(row.price).toLocaleString("fr-FR")} DA</td>
                   <td>{row.reference}</td>
@@ -2148,7 +2189,7 @@ function AdminApp({ onLogout }) {
                 <tr key={row.id}>
                   <td>{row.first_name}</td>
                   <td>{row.last_name}</td>
-                  <td>{row.role}</td>
+                  <td>{getRoleLabel(row.role)}</td>
                   <td>{row.email}</td>
                   <td>{getActiveStatusLabel(row.status)}</td>
                   <td>
@@ -2384,8 +2425,8 @@ function AdminApp({ onLogout }) {
                 <label><span>Montant</span><input type="number" value={adminModal.values.amount ?? 0} onChange={(event) => updateAdminField("amount", event.target.value)} /></label>
                 <label className="full-span"><span>Produits</span><textarea value={adminModal.values.products ?? ""} onChange={(event) => updateAdminField("products", event.target.value)} /></label>
                  <label><span>Statut</span><select value={adminModal.values.status ?? "pending"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="pending">En attente</option><option value="confirmed">Confirmee</option><option value="dispatch">En livraison</option><option value="delivered">Livree</option><option value="cancelled">Annulee</option></select></label>
-                <label><span>Canal</span><select value={adminModal.values.channel ?? "whatsapp"} onChange={(event) => updateAdminField("channel", event.target.value)}><option value="whatsapp">whatsapp</option><option value="email">email</option><option value="call">call</option></select></label>
-                <label><span>Source</span><select value={adminModal.values.source ?? "web"} onChange={(event) => updateAdminField("source", event.target.value)}><option value="web">web</option><option value="call">call</option><option value="wa">wa</option></select></label>
+                 <label><span>Canal</span><select value={adminModal.values.channel ?? "whatsapp"} onChange={(event) => updateAdminField("channel", event.target.value)}><option value="whatsapp">WhatsApp</option><option value="email">Email</option><option value="call">Appel</option></select></label>
+                 <label><span>Source</span><select value={adminModal.values.source ?? "web"} onChange={(event) => updateAdminField("source", event.target.value)}><option value="web">Site web</option><option value="call">Appel</option><option value="wa">WhatsApp</option></select></label>
                 <label className="full-span"><span>Notes</span><textarea value={adminModal.values.notes ?? ""} onChange={(event) => updateAdminField("notes", event.target.value)} /></label>
               </div>
             ) : null}
@@ -2450,7 +2491,7 @@ function AdminApp({ onLogout }) {
                 <label><span>Telephone</span><input value={adminModal.values.phone ?? ""} onChange={(event) => updateAdminField("phone", event.target.value)} /></label>
                 <label><span>Email</span><input value={adminModal.values.email ?? ""} onChange={(event) => updateAdminField("email", event.target.value)} /></label>
                 <label><span>Mot de passe</span><input value={adminModal.values.password ?? ""} onChange={(event) => updateAdminField("password", event.target.value)} /></label>
-                <label><span>Role</span><select value={adminModal.values.role ?? "operateur"} onChange={(event) => updateAdminField("role", event.target.value)}><option value="admin">admin</option><option value="operateur">operateur</option><option value="pharmacien">pharmacien</option><option value="livreur">livreur</option></select></label>
+                 <label><span>Role</span><select value={adminModal.values.role ?? "operateur"} onChange={(event) => updateAdminField("role", event.target.value)}><option value="admin">Administrateur</option><option value="operateur">Operateur</option><option value="pharmacien">Pharmacien</option><option value="livreur">Livreur</option></select></label>
                  <label><span>Statut</span><select value={adminModal.values.status ?? "actif"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="actif">Actif</option><option value="inactif">Inactif</option></select></label>
                 <label className="full-span"><span>Indice mot de passe</span><input value={adminModal.values.password_hint ?? ""} onChange={(event) => updateAdminField("password_hint", event.target.value)} /></label>
               </div>
@@ -2459,7 +2500,7 @@ function AdminApp({ onLogout }) {
             {adminModal.entity === "catalog" ? (
               <div className="admin-form-grid">
                 <label className="full-span"><span>Produit</span><input value={adminModal.values.name ?? ""} onChange={(event) => updateAdminField("name", event.target.value)} /></label>
-                <label><span>Categorie</span><select value={adminModal.values.category ?? "otc"} onChange={(event) => updateAdminField("category", event.target.value)}><option value="otc">otc</option><option value="para">para</option></select></label>
+                 <label><span>Categorie</span><select value={adminModal.values.category ?? "otc"} onChange={(event) => updateAdminField("category", event.target.value)}><option value="otc">Medicaments sans ordonnance</option><option value="para">Parapharmacie</option></select></label>
                 <label><span>Forme</span><input value={adminModal.values.form ?? ""} onChange={(event) => updateAdminField("form", event.target.value)} /></label>
                 <label><span>Unite</span><input value={adminModal.values.unit ?? ""} onChange={(event) => updateAdminField("unit", event.target.value)} /></label>
                 <label><span>Prix</span><input type="number" value={adminModal.values.price ?? 0} onChange={(event) => updateAdminField("price", event.target.value)} /></label>
