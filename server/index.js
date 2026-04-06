@@ -383,6 +383,26 @@ function sanitizePayload(columns, payload) {
   return Object.fromEntries(columns.map((column) => [column, payload[column] ?? null]));
 }
 
+async function findByPhoneOrEmail(tableName, phone, email) {
+  const normalizedEmail = String(email ?? "").trim();
+  if (normalizedEmail) {
+    return get(
+      `SELECT * FROM ${tableName}
+       WHERE phone = ?
+          OR email = ?
+       LIMIT 1`,
+      [phone, normalizedEmail]
+    );
+  }
+
+  return get(
+    `SELECT * FROM ${tableName}
+     WHERE phone = ?
+     LIMIT 1`,
+    [phone]
+  );
+}
+
 function signSessionPayload(payload) {
   return crypto.createHmac("sha256", sessionSecret).update(payload).digest("hex");
 }
@@ -1404,13 +1424,7 @@ app.post("/api/settings/driver-applications/:id/approve", async (req, res, next)
     if (!application) return res.status(404).json({ message: "Candidature introuvable" });
     if (application.status === "approved") return res.json({ ok: true, status: "approved" });
 
-    const existingDriver = await get(
-      `SELECT * FROM drivers
-       WHERE phone = ?
-          OR (? IS NOT NULL AND email = ?)
-       LIMIT 1`,
-      [application.phone, application.email ?? null, application.email ?? null]
-    );
+    const existingDriver = await findByPhoneOrEmail("drivers", application.phone, application.email);
 
     if (!existingDriver) {
       await run(
@@ -1480,13 +1494,7 @@ app.post("/api/settings/review", async (req, res, next) => {
         const application = await get("SELECT * FROM driver_applications WHERE id = ?", [rowId]);
         if (!application) return res.status(404).json({ message: "Candidature introuvable" });
         if (application.status !== "approved") {
-          const existingDriver = await get(
-            `SELECT * FROM drivers
-             WHERE phone = ?
-                OR (? IS NOT NULL AND email = ?)
-             LIMIT 1`,
-            [application.phone, application.email ?? null, application.email ?? null]
-          );
+          const existingDriver = await findByPhoneOrEmail("drivers", application.phone, application.email);
 
           if (!existingDriver) {
             await run(
@@ -1540,13 +1548,7 @@ app.post("/api/settings/review", async (req, res, next) => {
         const application = await get("SELECT * FROM pharmacy_applications WHERE id = ?", [rowId]);
         if (!application) return res.status(404).json({ message: "Demande introuvable" });
         if (application.status !== "approved") {
-          const existingPharmacy = await get(
-            `SELECT * FROM pharmacies
-             WHERE phone = ?
-                OR (? IS NOT NULL AND email = ?)
-             LIMIT 1`,
-            [application.phone, application.email ?? null, application.email ?? null]
-          );
+          const existingPharmacy = await findByPhoneOrEmail("pharmacies", application.phone, application.email);
 
           if (!existingPharmacy) {
             await run(
@@ -1606,13 +1608,7 @@ app.post("/api/settings/review", async (req, res, next) => {
         const registration = await get("SELECT * FROM patient_registrations WHERE id = ?", [rowId]);
         if (!registration) return res.status(404).json({ message: "Inscription patient introuvable" });
         if (registration.status !== "approved") {
-          const existingPatient = await get(
-            `SELECT * FROM patients
-             WHERE phone = ?
-                OR (? IS NOT NULL AND email = ?)
-             LIMIT 1`,
-            [registration.phone, registration.email ?? null, registration.email ?? null]
-          );
+          const existingPatient = await findByPhoneOrEmail("patients", registration.phone, registration.email);
 
           if (!existingPatient) {
             await run(
@@ -1684,13 +1680,7 @@ app.post("/api/settings/pharmacy-applications/:id/approve", async (req, res, nex
     if (!application) return res.status(404).json({ message: "Demande introuvable" });
     if (application.status === "approved") return res.json({ ok: true, status: "approved" });
 
-    const existingPharmacy = await get(
-      `SELECT * FROM pharmacies
-       WHERE phone = ?
-          OR (? IS NOT NULL AND email = ?)
-       LIMIT 1`,
-      [application.phone, application.email ?? null, application.email ?? null]
-    );
+    const existingPharmacy = await findByPhoneOrEmail("pharmacies", application.phone, application.email);
 
     if (!existingPharmacy) {
       await run(
@@ -1757,13 +1747,7 @@ app.post("/api/settings/patient-registrations/:id/approve", async (req, res, nex
     if (!registration) return res.status(404).json({ message: "Inscription patient introuvable" });
     if (registration.status === "approved") return res.json({ ok: true, status: "approved" });
 
-    const existingPatient = await get(
-      `SELECT * FROM patients
-       WHERE phone = ?
-          OR (? IS NOT NULL AND email = ?)
-       LIMIT 1`,
-      [registration.phone, registration.email ?? null, registration.email ?? null]
-    );
+    const existingPatient = await findByPhoneOrEmail("patients", registration.phone, registration.email);
 
     if (!existingPatient) {
       await run(
