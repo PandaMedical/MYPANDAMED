@@ -213,7 +213,9 @@ async function request(path, options = {}) {
     } catch {
       try {
         const fallbackText = await response.text();
-        if (fallbackText?.includes("FUNCTION_PAYLOAD_TOO_LARGE") || fallbackText?.includes("413")) {
+        if (fallbackText?.includes("NOT_FOUND")) {
+          message = "Route API introuvable sur Vercel. Le deploiement des routes serveur est incomplet.";
+        } else if (fallbackText?.includes("FUNCTION_PAYLOAD_TOO_LARGE") || fallbackText?.includes("413")) {
           message = "L image est trop volumineuse. Reduisez-la puis reessayez.";
         } else if (fallbackText?.trim()) {
           message = fallbackText.trim().slice(0, 180);
