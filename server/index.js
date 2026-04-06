@@ -1477,34 +1477,198 @@ app.post("/api/settings/review", async (req, res, next) => {
 
     if (group === "driver-applications") {
       if (action === "approve") {
-        req.params.id = String(rowId);
-        return app._router.handle({ ...req, url: `/api/settings/driver-applications/${rowId}/approve`, method: "POST" }, res, next);
+        const application = await get("SELECT * FROM driver_applications WHERE id = ?", [rowId]);
+        if (!application) return res.status(404).json({ message: "Candidature introuvable" });
+        if (application.status !== "approved") {
+          const existingDriver = await get(
+            `SELECT * FROM drivers
+             WHERE phone = ?
+                OR (? IS NOT NULL AND email = ?)
+             LIMIT 1`,
+            [application.phone, application.email ?? null, application.email ?? null]
+          );
+
+          if (!existingDriver) {
+            await run(
+              `INSERT INTO drivers (first_name, last_name, phone, email, password, zone_name, vehicle, status, rating, packages_count, revenue)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'actif', 0, 0, 0)`,
+              [
+                application.first_name,
+                application.last_name,
+                application.phone,
+                application.email ?? null,
+                application.password ?? application.phone,
+                application.delivery_zone ?? application.wilaya ?? null,
+                String(application.vehicle ?? "Moto").toLowerCase()
+              ]
+            );
+          } else {
+            await run(
+              `UPDATE drivers
+               SET first_name = COALESCE(NULLIF(?, ''), first_name),
+                   last_name = COALESCE(NULLIF(?, ''), last_name),
+                   email = COALESCE(NULLIF(?, ''), email),
+                   password = COALESCE(NULLIF(?, ''), password),
+                   zone_name = COALESCE(NULLIF(?, ''), zone_name),
+                   vehicle = COALESCE(NULLIF(?, ''), vehicle),
+                   status = COALESCE(NULLIF(status, ''), 'actif'),
+                   updated_at = CURRENT_TIMESTAMP
+               WHERE id = ?`,
+              [
+                application.first_name ?? "",
+                application.last_name ?? "",
+                application.email ?? "",
+                application.password ?? application.phone ?? "",
+                application.delivery_zone ?? application.wilaya ?? "",
+                String(application.vehicle ?? "Moto").toLowerCase(),
+                existingDriver.id
+              ]
+            );
+          }
+          await run("UPDATE driver_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+        }
+        return res.json({ ok: true, status: "approved" });
       }
       if (action === "reject") {
-        req.params.id = String(rowId);
-        return app._router.handle({ ...req, url: `/api/settings/driver-applications/${rowId}/reject`, method: "POST" }, res, next);
+        await run("UPDATE driver_applications SET status = 'rejected', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+        return res.json({ ok: true, status: "rejected" });
       }
     }
 
     if (group === "pharmacy-applications") {
       if (action === "approve") {
-        req.params.id = String(rowId);
-        return app._router.handle({ ...req, url: `/api/settings/pharmacy-applications/${rowId}/approve`, method: "POST" }, res, next);
+        const application = await get("SELECT * FROM pharmacy_applications WHERE id = ?", [rowId]);
+        if (!application) return res.status(404).json({ message: "Demande introuvable" });
+        if (application.status !== "approved") {
+          const existingPharmacy = await get(
+            `SELECT * FROM pharmacies
+             WHERE phone = ?
+                OR (? IS NOT NULL AND email = ?)
+             LIMIT 1`,
+            [application.phone, application.email ?? null, application.email ?? null]
+          );
+
+          if (!existingPharmacy) {
+            await run(
+              `INSERT INTO pharmacies (name, manager_name, phone, whatsapp, email, address, wilaya, area, zone_name, status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'online')`,
+              [
+                application.pharmacy_name,
+                application.manager_name,
+                application.phone,
+                application.whatsapp ?? null,
+                application.email ?? null,
+                application.address ?? null,
+                application.wilaya ?? null,
+                application.service_area ?? null,
+                application.service_area ?? null
+              ]
+            );
+          } else {
+            await run(
+              `UPDATE pharmacies
+               SET name = COALESCE(NULLIF(?, ''), name),
+                   manager_name = COALESCE(NULLIF(?, ''), manager_name),
+                   whatsapp = COALESCE(NULLIF(?, ''), whatsapp),
+                   email = COALESCE(NULLIF(?, ''), email),
+                   address = COALESCE(NULLIF(?, ''), address),
+                   wilaya = COALESCE(NULLIF(?, ''), wilaya),
+                   area = COALESCE(NULLIF(?, ''), area),
+                   zone_name = COALESCE(NULLIF(?, ''), zone_name),
+                   status = 'online',
+                   updated_at = CURRENT_TIMESTAMP
+               WHERE id = ?`,
+              [
+                application.pharmacy_name ?? "",
+                application.manager_name ?? "",
+                application.whatsapp ?? "",
+                application.email ?? "",
+                application.address ?? "",
+                application.wilaya ?? "",
+                application.service_area ?? "",
+                application.service_area ?? "",
+                existingPharmacy.id
+              ]
+            );
+          }
+          await run("UPDATE pharmacy_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+        }
+        return res.json({ ok: true, status: "approved" });
       }
       if (action === "reject") {
-        req.params.id = String(rowId);
-        return app._router.handle({ ...req, url: `/api/settings/pharmacy-applications/${rowId}/reject`, method: "POST" }, res, next);
+        await run("UPDATE pharmacy_applications SET status = 'rejected', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+        return res.json({ ok: true, status: "rejected" });
       }
     }
 
     if (group === "patient-registrations") {
       if (action === "approve") {
-        req.params.id = String(rowId);
-        return app._router.handle({ ...req, url: `/api/settings/patient-registrations/${rowId}/approve`, method: "POST" }, res, next);
+        const registration = await get("SELECT * FROM patient_registrations WHERE id = ?", [rowId]);
+        if (!registration) return res.status(404).json({ message: "Inscription patient introuvable" });
+        if (registration.status !== "approved") {
+          const existingPatient = await get(
+            `SELECT * FROM patients
+             WHERE phone = ?
+                OR (? IS NOT NULL AND email = ?)
+             LIMIT 1`,
+            [registration.phone, registration.email ?? null, registration.email ?? null]
+          );
+
+          if (!existingPatient) {
+            await run(
+              `INSERT INTO patients (first_name, last_name, phone, email, address, wilaya, area, conditions, allergies, notes, password)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                registration.first_name,
+                registration.last_name,
+                registration.phone,
+                registration.email ?? null,
+                registration.address ?? null,
+                registration.wilaya ?? null,
+                registration.area ?? null,
+                registration.conditions ?? null,
+                registration.allergies ?? null,
+                registration.notes ?? null,
+                registration.password ?? registration.phone
+              ]
+            );
+          } else {
+            await run(
+              `UPDATE patients
+               SET first_name = COALESCE(NULLIF(?, ''), first_name),
+                   last_name = COALESCE(NULLIF(?, ''), last_name),
+                   email = COALESCE(NULLIF(?, ''), email),
+                   address = COALESCE(NULLIF(?, ''), address),
+                   wilaya = COALESCE(NULLIF(?, ''), wilaya),
+                   area = COALESCE(NULLIF(?, ''), area),
+                   conditions = COALESCE(NULLIF(?, ''), conditions),
+                   allergies = COALESCE(NULLIF(?, ''), allergies),
+                   notes = COALESCE(NULLIF(?, ''), notes),
+                   password = COALESCE(NULLIF(?, ''), password),
+                   updated_at = CURRENT_TIMESTAMP
+               WHERE id = ?`,
+              [
+                registration.first_name ?? "",
+                registration.last_name ?? "",
+                registration.email ?? "",
+                registration.address ?? "",
+                registration.wilaya ?? "",
+                registration.area ?? "",
+                registration.conditions ?? "",
+                registration.allergies ?? "",
+                registration.notes ?? "",
+                registration.password ?? registration.phone ?? "",
+                existingPatient.id
+              ]
+            );
+          }
+          await run("UPDATE patient_registrations SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+        }
+        return res.json({ ok: true, status: "approved" });
       }
       if (action === "reject") {
-        req.params.id = String(rowId);
-        return app._router.handle({ ...req, url: `/api/settings/patient-registrations/${rowId}/reject`, method: "POST" }, res, next);
+        await run("UPDATE patient_registrations SET status = 'rejected', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+        return res.json({ ok: true, status: "rejected" });
       }
     }
 
