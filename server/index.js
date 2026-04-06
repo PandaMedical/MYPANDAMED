@@ -442,6 +442,29 @@ async function resolvePatientProfile(req, requestedId) {
   return null;
 }
 
+async function resolvePharmacyProfile(req, requestedId) {
+  const requested = requestedId ? await get("SELECT * FROM pharmacies WHERE id = ?", [requestedId]) : null;
+  if (requested) return requested;
+
+  const sessionUser = readSessionToken(req);
+  if (!sessionUser) return null;
+
+  const email = String(sessionUser.email ?? "").trim();
+  const phone = String(sessionUser.phone ?? "").trim();
+
+  if (email) {
+    const byEmail = await get("SELECT * FROM pharmacies WHERE email = ? LIMIT 1", [email]);
+    if (byEmail) return byEmail;
+  }
+
+  if (phone) {
+    const byPhone = await get("SELECT * FROM pharmacies WHERE phone = ? LIMIT 1", [phone]);
+    if (byPhone) return byPhone;
+  }
+
+  return null;
+}
+
 function readSessionToken(req) {
   const cookieHeader = req.headers.cookie ?? "";
   const cookies = Object.fromEntries(
@@ -1903,18 +1926,20 @@ app.post("/api/driver-space/:id/orders/:orderId/status", async (req, res, next) 
 
 app.get("/api/pharmacy-space/:id", async (req, res, next) => {
   try {
-    const [pharmacy, orders] = await Promise.all([
-      get("SELECT id, name, manager_name, zone_name, status FROM pharmacies WHERE id = ?", [req.params.id]),
-      all(
-        `SELECT o.*, p.first_name || ' ' || p.last_name AS patient_name, d.first_name || ' ' || d.last_name AS driver_name
-         FROM orders o
-         LEFT JOIN patients p ON p.id = o.patient_id
-         LEFT JOIN drivers d ON d.id = o.driver_id
-         WHERE o.pharmacy_id = ?
-         ORDER BY o.created_at DESC`,
-        [req.params.id]
-      )
-    ]);
+    const pharmacy = await resolvePharmacyProfile(req, req.params.id);
+    if (!pharmacy) {
+      return res.json({ pharmacy: null, orders: [] });
+    }
+
+    const orders = await all(
+      `SELECT o.*, p.first_name || ' ' || p.last_name AS patient_name, d.first_name || ' ' || d.last_name AS driver_name
+       FROM orders o
+       LEFT JOIN patients p ON p.id = o.patient_id
+       LEFT JOIN drivers d ON d.id = o.driver_id
+       WHERE o.pharmacy_id = ?
+       ORDER BY o.created_at DESC`,
+      [pharmacy.id]
+    );
     res.json({ pharmacy, orders });
   } catch (error) {
     next(error);
@@ -1923,7 +1948,11 @@ app.get("/api/pharmacy-space/:id", async (req, res, next) => {
 
 app.post("/api/pharmacy-space/:id/orders/:orderId/accept", async (req, res, next) => {
   try {
-    await run("UPDATE orders SET status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND pharmacy_id = ?", [req.params.orderId, req.params.id]);
+    const pharmacy = await resolvePharmacyProfile(req, req.params.id);
+    if (!pharmacy) {
+      return res.status(404).json({ message: "Pharmacie introuvable" });
+    }
+    await run("UPDATE orders SET status = 'confirmed', updated_at = CURRENT_TIMESTAMP WHERE id = ? AND pharmacy_id = ?", [req.params.orderId, pharmacy.id]);
     res.json({ ok: true });
   } catch (error) {
     next(error);
