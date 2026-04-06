@@ -1465,6 +1465,55 @@ app.post("/api/settings/driver-applications/:id/reject", async (req, res, next) 
   }
 });
 
+app.post("/api/settings/review", async (req, res, next) => {
+  try {
+    const group = String(req.body?.group ?? "").trim();
+    const action = String(req.body?.action ?? "").trim();
+    const rowId = req.body?.rowId;
+
+    if (!group || !action || !rowId) {
+      return res.status(400).json({ message: "Parametres de validation incomplets" });
+    }
+
+    if (group === "driver-applications") {
+      if (action === "approve") {
+        req.params.id = String(rowId);
+        return app._router.handle({ ...req, url: `/api/settings/driver-applications/${rowId}/approve`, method: "POST" }, res, next);
+      }
+      if (action === "reject") {
+        req.params.id = String(rowId);
+        return app._router.handle({ ...req, url: `/api/settings/driver-applications/${rowId}/reject`, method: "POST" }, res, next);
+      }
+    }
+
+    if (group === "pharmacy-applications") {
+      if (action === "approve") {
+        req.params.id = String(rowId);
+        return app._router.handle({ ...req, url: `/api/settings/pharmacy-applications/${rowId}/approve`, method: "POST" }, res, next);
+      }
+      if (action === "reject") {
+        req.params.id = String(rowId);
+        return app._router.handle({ ...req, url: `/api/settings/pharmacy-applications/${rowId}/reject`, method: "POST" }, res, next);
+      }
+    }
+
+    if (group === "patient-registrations") {
+      if (action === "approve") {
+        req.params.id = String(rowId);
+        return app._router.handle({ ...req, url: `/api/settings/patient-registrations/${rowId}/approve`, method: "POST" }, res, next);
+      }
+      if (action === "reject") {
+        req.params.id = String(rowId);
+        return app._router.handle({ ...req, url: `/api/settings/patient-registrations/${rowId}/reject`, method: "POST" }, res, next);
+      }
+    }
+
+    return res.status(404).json({ message: "Action de validation introuvable" });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/api/settings/pharmacy-applications/:id/approve", async (req, res, next) => {
   try {
     const application = await get("SELECT * FROM pharmacy_applications WHERE id = ?", [req.params.id]);

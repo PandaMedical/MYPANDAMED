@@ -1828,7 +1828,10 @@ function AdminApp({ onLogout }) {
     setSettingsBusy(true);
     setError("");
     try {
-      await request(`/settings/${group}/${rowId}/${action}`, { method: "POST" });
+      await request("/settings/review", {
+        method: "POST",
+        body: JSON.stringify({ group, rowId, action })
+      });
       setSettingsData((current) => {
         const nextStatus = action === "approve" ? "approved" : "rejected";
         const mapRows = (rows) =>
