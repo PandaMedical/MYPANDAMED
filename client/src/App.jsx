@@ -1827,9 +1827,31 @@ function AdminApp({ onLogout }) {
     setError("");
     try {
       await request(`/settings/${group}/${rowId}/${action}`, { method: "POST" });
-      await refreshAdminView("settings");
+      setSettingsData((current) => {
+        const nextStatus = action === "approve" ? "approved" : "rejected";
+        const mapRows = (rows) =>
+          rows.map((row) => (String(row.id) === String(rowId) ? { ...row, status: nextStatus } : row));
+
+        if (group === "driver-applications") {
+          return { ...current, driverApplications: mapRows(current.driverApplications ?? []) };
+        }
+        if (group === "pharmacy-applications") {
+          return { ...current, pharmacyApplications: mapRows(current.pharmacyApplications ?? []) };
+        }
+        if (group === "patient-registrations") {
+          return { ...current, patientRegistrations: mapRows(current.patientRegistrations ?? []) };
+        }
+        return current;
+      });
     } catch (reviewError) {
-      setError(reviewError.message);
+      const groupLabel =
+        group === "pharmacy-applications"
+          ? "la demande pharmacie"
+          : group === "driver-applications"
+            ? "la candidature livreur"
+            : "l inscription patient";
+      const actionLabel = action === "approve" ? "validation" : "refus";
+      setError(`${actionLabel} impossible pour ${groupLabel} : ${reviewError.message}`);
     } finally {
       setSettingsBusy(false);
     }
