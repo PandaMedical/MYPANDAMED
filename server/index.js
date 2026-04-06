@@ -419,6 +419,29 @@ function createSessionToken(user) {
   return `${payload}.${signature}`;
 }
 
+async function resolvePatientProfile(req, requestedId) {
+  const requested = requestedId ? await get("SELECT * FROM patients WHERE id = ?", [requestedId]) : null;
+  if (requested) return requested;
+
+  const sessionUser = readSessionToken(req);
+  if (!sessionUser) return null;
+
+  const email = String(sessionUser.email ?? "").trim();
+  const phone = String(sessionUser.phone ?? "").trim();
+
+  if (email) {
+    const byEmail = await get("SELECT * FROM patients WHERE email = ? LIMIT 1", [email]);
+    if (byEmail) return byEmail;
+  }
+
+  if (phone) {
+    const byPhone = await get("SELECT * FROM patients WHERE phone = ? LIMIT 1", [phone]);
+    if (byPhone) return byPhone;
+  }
+
+  return null;
+}
+
 function readSessionToken(req) {
   const cookieHeader = req.headers.cookie ?? "";
   const cookies = Object.fromEntries(
@@ -1909,33 +1932,35 @@ app.post("/api/pharmacy-space/:id/orders/:orderId/accept", async (req, res, next
 
 app.get("/api/patient-space/:id", async (req, res, next) => {
   try {
-    const [patient, orders] = await Promise.all([
-      get("SELECT id, first_name, last_name, phone, email, wilaya, area, address, conditions FROM patients WHERE id = ?", [req.params.id]),
-      all(
-        `SELECT
-          o.*,
-          ph.id AS pharmacy_ref_id,
-          ph.name AS pharmacy_name,
-          ph.manager_name AS pharmacy_manager_name,
-          ph.phone AS pharmacy_phone,
-          ph.whatsapp AS pharmacy_whatsapp,
-          ph.email AS pharmacy_email,
-          ph.address AS pharmacy_address,
-          ph.postal_code AS pharmacy_postal_code,
-          ph.wilaya AS pharmacy_wilaya,
-          ph.area AS pharmacy_area,
-          ph.zone_name AS pharmacy_zone_name,
-          ph.opening_hours AS pharmacy_opening_hours,
-          ph.status AS pharmacy_status,
-          d.first_name || ' ' || d.last_name AS driver_name
-         FROM orders o
-         LEFT JOIN pharmacies ph ON ph.id = o.pharmacy_id
-         LEFT JOIN drivers d ON d.id = o.driver_id
-         WHERE o.patient_id = ?
-         ORDER BY o.created_at DESC`,
-        [req.params.id]
-      )
-    ]);
+    const patient = await resolvePatientProfile(req, req.params.id);
+    if (!patient) {
+      return res.json({ patient: null, orders: [] });
+    }
+
+    const orders = await all(
+      `SELECT
+        o.*,
+        ph.id AS pharmacy_ref_id,
+        ph.name AS pharmacy_name,
+        ph.manager_name AS pharmacy_manager_name,
+        ph.phone AS pharmacy_phone,
+        ph.whatsapp AS pharmacy_whatsapp,
+        ph.email AS pharmacy_email,
+        ph.address AS pharmacy_address,
+        ph.postal_code AS pharmacy_postal_code,
+        ph.wilaya AS pharmacy_wilaya,
+        ph.area AS pharmacy_area,
+        ph.zone_name AS pharmacy_zone_name,
+        ph.opening_hours AS pharmacy_opening_hours,
+        ph.status AS pharmacy_status,
+        d.first_name || ' ' || d.last_name AS driver_name
+       FROM orders o
+       LEFT JOIN pharmacies ph ON ph.id = o.pharmacy_id
+       LEFT JOIN drivers d ON d.id = o.driver_id
+       WHERE o.patient_id = ?
+       ORDER BY o.created_at DESC`,
+      [patient.id]
+    );
     res.json({ patient, orders });
   } catch (error) {
     next(error);

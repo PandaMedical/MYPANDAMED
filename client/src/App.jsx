@@ -1088,6 +1088,9 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     setPageError("");
 
     try {
+      const patientSpace = await request(`/patient-space/${currentUser.id}`);
+      const resolvedPatientId = patientSpace?.patient?.id ?? currentUser.id;
+
       if (!checkoutForm.pharmacy_id) {
         throw new Error("Choisissez une pharmacie pour finaliser la commande.");
       }
@@ -1102,7 +1105,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       await request("/orders", {
         method: "POST",
         body: JSON.stringify({
-          patient_id: currentUser.id,
+          patient_id: resolvedPatientId,
           pharmacy_id: Number(checkoutForm.pharmacy_id),
           products,
           amount: cartTotal,
