@@ -293,23 +293,28 @@ function ProductCard({ item, onAdd }) {
 
   return (
     <article className="product-card">
-      <div className={`product-media tone-${visual.tone}`}>
-        {item.image ? (
-          <img src={item.image} alt={item.name} className="product-image" />
-        ) : (
-          <div className={`product-pack accent-${visual.accent}`}>{item.name.slice(0, 2).toUpperCase()}</div>
-        )}
-      </div>
-      <span className="product-chip">{therapeuticClass}</span>
-      <h3>{item.name}</h3>
-      <p>
-        {item.form} - {item.unit}
-      </p>
-      <div className="product-footer">
-        <strong>{Number(item.price).toLocaleString("fr-FR")} DA</strong>
-        <button type="button" onClick={() => onAdd(item)} title="Ajouter au panier" aria-label={`Ajouter ${item.name} au panier`}>
-          +
-        </button>
+      <div className="product-card-body">
+        <div className="product-copy">
+          <span className="product-chip">{therapeuticClass}</span>
+          <h3>{item.name}</h3>
+          <p>
+            {item.form} - {item.unit}
+          </p>
+          <div className="product-footer">
+            <strong>{Number(item.price).toLocaleString("fr-FR")} DA</strong>
+          </div>
+        </div>
+
+        <div className={`product-media tone-${visual.tone}`}>
+          {item.image ? (
+            <img src={item.image} alt={item.name} className="product-image" />
+          ) : (
+            <div className={`product-pack accent-${visual.accent}`}>{item.name.slice(0, 2).toUpperCase()}</div>
+          )}
+          <button type="button" className="product-add-button" onClick={() => onAdd(item)} title="Ajouter au panier" aria-label={`Ajouter ${item.name} au panier`}>
+            +
+          </button>
+        </div>
       </div>
     </article>
   );
@@ -1774,15 +1779,6 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
                 <button type="submit" className="primary-action login-action wide-action" disabled={loginSubmitting}>
                   {loginSubmitting ? "..." : "Se connecter"}
                 </button>
-                <div className="demo-accounts">
-                  <span>Comptes demo :</span>
-                  <div className="demo-account-list">
-                    <span>Admin: admin@pandamed.dz / Admin123!</span>
-                    <span>Livreur: karim.b@drv.dz / Livreur123</span>
-                    <span>Pharmacie: elamel@ph.dz / Pharma123</span>
-                    <span>Patient: amira@email.dz / Patient123</span>
-                  </div>
-                </div>
               </form>
             ) : (
               <form className="login-form register-form" onSubmit={submitRegister}>
