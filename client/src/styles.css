@@ -273,8 +273,8 @@ select {
   align-content: start;
   gap: 18px;
   padding: 0 14px 14px;
-  background: linear-gradient(180deg, rgba(245, 248, 254, 0.94), rgba(232, 238, 249, 0.92));
-  border-right: 1px solid rgba(116, 144, 205, 0.12);
+  background: transparent;
+  border-right: 0;
 }
 
 .search-input,
