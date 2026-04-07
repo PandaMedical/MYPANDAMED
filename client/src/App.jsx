@@ -1972,7 +1972,11 @@ function AdminApp({ onLogout }) {
     () => ({
       patients: entities.patients.map((item) => ({ value: item.id, label: `${item.first_name} ${item.last_name}` })),
       pharmacies: entities.pharmacies.map((item) => ({ value: item.id, label: item.name })),
-      drivers: entities.drivers.map((item) => ({ value: item.id, label: `${item.first_name} ${item.last_name}` }))
+      drivers: entities.drivers.map((item) => ({ value: item.id, label: `${item.first_name} ${item.last_name}` })),
+      catalog: entities.catalog.map((item) => ({
+        value: item.name,
+        label: `${item.name} - ${Number(item.price || 0).toLocaleString("fr-FR")} DA`
+      }))
     }),
     [entities]
   );
@@ -1982,6 +1986,7 @@ function AdminApp({ onLogout }) {
     if (!entities.patients.length) loaders.push(loadAdminSection("patients"));
     if (!entities.pharmacies.length) loaders.push(loadAdminSection("pharmacies"));
     if (!entities.drivers.length) loaders.push(loadAdminSection("drivers"));
+    if (!entities.catalog.length) loaders.push(loadAdminSection("catalog"));
     if (loaders.length) {
       await Promise.all(loaders);
     }
@@ -2007,6 +2012,21 @@ function AdminApp({ onLogout }) {
 
   function updateAdminField(name, value) {
     setAdminModal((current) => ({ ...current, values: { ...current.values, [name]: value } }));
+  }
+
+  function updateOrderProduct(productName) {
+    const selectedItem = entities.catalog.find((item) => item.name === productName);
+    setAdminModal((current) => ({
+      ...current,
+      values: {
+        ...current.values,
+        products: productName,
+        amount:
+          selectedItem && (!Number(current.values.amount) || Number(current.values.amount) <= 0)
+            ? selectedItem.price
+            : current.values.amount
+      }
+    }));
   }
 
   function openAdminOrderPharmacy(row) {
@@ -2912,7 +2932,17 @@ function AdminApp({ onLogout }) {
                 <label><span>Pharmacie</span><select value={adminModal.values.pharmacy_id ?? ""} onChange={(event) => updateAdminField("pharmacy_id", event.target.value)}><option value="">Selectionner</option>{adminSelects.pharmacies.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                 <label><span>Livreur</span><select value={adminModal.values.driver_id ?? ""} onChange={(event) => updateAdminField("driver_id", event.target.value)}><option value="">Selectionner</option>{adminSelects.drivers.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
                 <label><span>Montant</span><input type="number" value={adminModal.values.amount ?? 0} onChange={(event) => updateAdminField("amount", event.target.value)} /></label>
-                <label className="full-span"><span>Produits</span><textarea value={adminModal.values.products ?? ""} onChange={(event) => updateAdminField("products", event.target.value)} /></label>
+                 <label className="full-span">
+                   <span>Produits</span>
+                   <select value={adminModal.values.products ?? ""} onChange={(event) => updateOrderProduct(event.target.value)}>
+                     <option value="">Selectionner un produit</option>
+                     {adminSelects.catalog.map((option) => (
+                       <option key={option.value} value={option.value}>
+                         {option.label}
+                       </option>
+                     ))}
+                   </select>
+                 </label>
                  <label><span>Statut</span><select value={adminModal.values.status ?? "pending"} onChange={(event) => updateAdminField("status", event.target.value)}><option value="pending">En attente</option><option value="confirmed">Confirmee</option><option value="dispatch">En livraison</option><option value="delivered">Livree</option><option value="cancelled">Annulee</option></select></label>
                  <label><span>Canal</span><select value={adminModal.values.channel ?? "whatsapp"} onChange={(event) => updateAdminField("channel", event.target.value)}><option value="whatsapp">WhatsApp</option><option value="email">Email</option><option value="call">Appel</option></select></label>
                  <label><span>Source</span><select value={adminModal.values.source ?? "web"} onChange={(event) => updateAdminField("source", event.target.value)}><option value="web">Site web</option><option value="call">Appel</option><option value="wa">WhatsApp</option></select></label>
