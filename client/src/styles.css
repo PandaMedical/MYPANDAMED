@@ -338,15 +338,29 @@ select {
     linear-gradient(135deg, rgba(21, 35, 77, 0.04), transparent 42%);
   border: 1px solid rgba(109, 135, 196, 0.2);
   border-radius: 14px;
-  padding: 8px;
+  padding: 8px 9px;
   box-shadow: 0 18px 34px rgba(6, 16, 44, 0.22);
+  min-height: 148px;
+}
+
+.product-card-body {
   display: grid;
-  gap: 6px;
-  min-height: 204px;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  align-items: stretch;
+  gap: 8px;
+  min-height: 130px;
+}
+
+.product-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
 }
 
 .product-media {
-  height: 102px;
+  position: relative;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -355,17 +369,18 @@ select {
     radial-gradient(circle at top, rgba(82, 174, 232, 0.16), transparent 38%),
     linear-gradient(180deg, #fdfefe, #e7eef9);
   overflow: hidden;
-  padding: 10px 12px;
+  padding: 10px;
   border: 1px solid rgba(181, 199, 236, 0.24);
+  min-height: 130px;
 }
 
 .product-image {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: calc(100% - 8px);
+  max-height: calc(100% - 8px);
   width: auto;
   height: auto;
   object-fit: contain;
-  object-position: center;
+  object-position: right center;
   display: block;
   margin: auto;
 }
@@ -420,21 +435,23 @@ select {
 
 .product-chip {
   width: fit-content;
-  padding: 3px 9px;
+  padding: 3px 8px;
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(223, 233, 252, 0.92), rgba(209, 223, 248, 0.92));
   color: #19356f;
   font-size: 8px;
   font-weight: 700;
   border: 1px solid rgba(120, 149, 208, 0.14);
+  max-width: 100%;
 }
 
 .product-card h3 {
   margin: 0;
   font-family: "Nunito", sans-serif;
-  font-size: 12px;
-  line-height: 1.15;
+  font-size: 11px;
+  line-height: 1.2;
   color: #14254f;
+  max-width: 100%;
 }
 
 .product-card p {
@@ -447,10 +464,9 @@ select {
 .product-footer {
   margin-top: auto;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  padding-top: 2px;
+  gap: 4px;
+  padding-top: 4px;
 }
 
 .product-footer strong {
@@ -459,7 +475,10 @@ select {
   color: #1a8d57;
 }
 
-.product-footer button {
+.product-add-button {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
   min-height: 28px;
   min-width: 28px;
   padding: 0;
@@ -470,6 +489,10 @@ select {
   display: grid;
   place-items: center;
   box-shadow: 0 10px 22px rgba(10, 20, 48, 0.22);
+}
+
+.product-add-button:hover {
+  transform: translateY(-1px);
 }
 
 .store-footer {
