@@ -1373,9 +1373,11 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
         <div className="header-actions">
           <button type="button" className="header-button driver" onClick={() => setDriverModalOpen(true)} title="Devenir Livreur" aria-label="Devenir Livreur">
-            🛵
+            Devenir Livreur
           </button>
-          <button type="button" className="header-button pharmacy" onClick={() => setPharmacyModalOpen(true)} title="Pharmacie - Cliquer ici" aria-label="Pharmacie - Cliquer ici">🏥</button>
+          <button type="button" className="header-button pharmacy" onClick={() => setPharmacyModalOpen(true)} title="Pharmacie - Cliquer ici" aria-label="Pharmacie - Cliquer ici">
+            Pharmacie - Cliquer ici
+          </button>
           <button
             type="button"
             className="header-button login"
@@ -1390,15 +1392,15 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
             title="Se connecter"
             aria-label="Se connecter"
           >
-            {currentUser ? "👤" : "🔐"}
+            {currentUser ? "Mon compte" : "Se connecter"}
           </button>
           {currentUser ? (
             <button type="button" className="header-button login" onClick={onLogout} title="Deconnexion" aria-label="Deconnexion">
-              ⎋
+              Deconnexion
             </button>
           ) : null}
           <button type="button" className="cart-button" title="Chariot des commandes" aria-label="Chariot des commandes" onClick={() => setCartOpen(true)}>
-            <span>🛒</span>
+            <span>Panier</span>
             <strong>{cartCount}</strong>
           </button>
         </div>

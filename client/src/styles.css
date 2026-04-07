@@ -209,15 +209,16 @@ select {
 }
 
 .header-button {
-  width: 46px;
-  min-width: 46px;
+  min-width: 132px;
   min-height: 46px;
-  padding: 0;
+  padding: 0 16px;
   color: white;
   box-shadow: 0 14px 28px rgba(7, 17, 43, 0.34);
-  font-size: 18px;
-  display: grid;
-  place-items: center;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .header-button.driver {
@@ -235,8 +236,8 @@ select {
 
 .cart-button {
   min-height: 46px;
-  min-width: 70px;
-  padding: 0 10px;
+  min-width: 110px;
+  padding: 0 14px;
   background: linear-gradient(180deg, rgba(247, 250, 255, 0.98), rgba(232, 239, 252, 0.94));
   color: #16254f;
   box-shadow: 0 14px 28px rgba(7, 17, 43, 0.24);
