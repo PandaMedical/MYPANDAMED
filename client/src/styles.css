@@ -326,8 +326,8 @@ select {
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .product-card {
@@ -335,17 +335,17 @@ select {
     linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(234, 240, 251, 0.95)),
     linear-gradient(135deg, rgba(21, 35, 77, 0.04), transparent 42%);
   border: 1px solid rgba(109, 135, 196, 0.2);
-  border-radius: 16px;
-  padding: 10px;
+  border-radius: 14px;
+  padding: 8px;
   box-shadow: 0 18px 34px rgba(6, 16, 44, 0.22);
   display: grid;
-  gap: 8px;
-  min-height: 228px;
+  gap: 6px;
+  min-height: 204px;
 }
 
 .product-media {
-  height: 124px;
-  border-radius: 14px;
+  height: 102px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -353,7 +353,7 @@ select {
     radial-gradient(circle at top, rgba(82, 174, 232, 0.16), transparent 38%),
     linear-gradient(180deg, #fdfefe, #e7eef9);
   overflow: hidden;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid rgba(181, 199, 236, 0.24);
 }
 
@@ -418,11 +418,11 @@ select {
 
 .product-chip {
   width: fit-content;
-  padding: 4px 10px;
+  padding: 3px 9px;
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(223, 233, 252, 0.92), rgba(209, 223, 248, 0.92));
   color: #19356f;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   border: 1px solid rgba(120, 149, 208, 0.14);
 }
@@ -430,7 +430,7 @@ select {
 .product-card h3 {
   margin: 0;
   font-family: "Nunito", sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.15;
   color: #14254f;
 }
@@ -438,7 +438,7 @@ select {
 .product-card p {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.15;
 }
 
@@ -447,24 +447,24 @@ select {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  padding-top: 4px;
+  gap: 6px;
+  padding-top: 2px;
 }
 
 .product-footer strong {
   font-family: "Nunito", sans-serif;
-  font-size: 11px;
+  font-size: 10px;
   color: #1a8d57;
 }
 
 .product-footer button {
-  min-height: 32px;
-  min-width: 32px;
+  min-height: 28px;
+  min-width: 28px;
   padding: 0;
   background: linear-gradient(135deg, #213a78, #15234d);
   color: white;
-  font-size: 18px;
-  border-radius: 10px;
+  font-size: 16px;
+  border-radius: 9px;
   display: grid;
   place-items: center;
   box-shadow: 0 10px 22px rgba(10, 20, 48, 0.22);
