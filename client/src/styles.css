@@ -41,8 +41,8 @@ select {
 
 .store-header {
   display: grid;
-  grid-template-columns: minmax(180px, 260px) minmax(360px, 520px) minmax(180px, 260px);
-  gap: 14px;
+  grid-template-columns: minmax(220px, 320px) minmax(320px, 1fr) auto;
+  gap: 10px;
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
@@ -71,20 +71,20 @@ select {
 .sponsor-panel {
   min-height: 56px;
   border-radius: 14px;
-  box-shadow: 0 18px 36px rgba(5, 11, 28, 0.34);
 }
 
 .brand-panel {
   display: grid;
   place-items: center;
-  padding: 8px 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(240, 245, 255, 0.92));
-  border: 1px solid rgba(166, 188, 235, 0.24);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .brand-panel img {
   width: 100%;
-  max-height: 40px;
+  max-height: 62px;
   object-fit: contain;
 }
 
@@ -192,10 +192,10 @@ select {
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-end;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .header-button,
@@ -209,16 +209,17 @@ select {
 }
 
 .header-button {
-  min-width: 132px;
-  min-height: 46px;
-  padding: 0 16px;
+  min-width: 112px;
+  min-height: 40px;
+  padding: 0 12px;
   color: white;
   box-shadow: 0 14px 28px rgba(7, 17, 43, 0.34);
-  font-size: 13px;
+  font-size: 11px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  line-height: 1.1;
 }
 
 .header-button.driver {
@@ -235,9 +236,9 @@ select {
 }
 
 .cart-button {
-  min-height: 46px;
-  min-width: 110px;
-  padding: 0 14px;
+  min-height: 40px;
+  min-width: 92px;
+  padding: 0 12px;
   background: linear-gradient(180deg, rgba(247, 250, 255, 0.98), rgba(232, 239, 252, 0.94));
   color: #16254f;
   box-shadow: 0 14px 28px rgba(7, 17, 43, 0.24);
@@ -245,18 +246,18 @@ select {
   gap: 8px;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 11px;
 }
 
 .cart-button strong {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: var(--blue-700);
   color: white;
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .store-body {
