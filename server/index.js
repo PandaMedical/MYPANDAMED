@@ -1104,18 +1104,15 @@ app.post("/api/auth/register-patient", async (req, res, next) => {
 
     const [existingPatient, existingRegistration] = await Promise.all([
       get("SELECT id FROM patients WHERE phone = ? OR email = ?", [payload.phone, payload.email ?? ""]),
-      get(
-        "SELECT id FROM patient_registrations WHERE (phone = ? OR email = ?) AND status != 'rejected'",
-        [payload.phone, payload.email ?? ""]
-      )
+      get("SELECT id FROM patient_registrations WHERE phone = ? OR email = ? LIMIT 1", [payload.phone, payload.email ?? ""])
     ]);
-    if (existingPatient || existingRegistration) {
+    if (existingPatient) {
       return res.status(409).json({ message: "Un compte patient existe deja avec ce numero ou cet email" });
     }
 
     const insert = await run(
-      `INSERT INTO patient_registrations (first_name, last_name, phone, email, address, wilaya, area, password, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      `INSERT INTO patients (first_name, last_name, phone, email, address, wilaya, area, password)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         payload.first_name,
         payload.last_name,
@@ -1127,7 +1124,15 @@ app.post("/api/auth/register-patient", async (req, res, next) => {
         password
       ]
     );
-    res.status(201).json({ ok: true, message: "Votre demande d inscription a ete envoyee", id: insert.lastID });
+
+    if (existingRegistration) {
+      await run("UPDATE patient_registrations SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [existingRegistration.id]);
+    }
+
+    const patient = await get("SELECT * FROM patients WHERE id = ?", [insert.lastID]);
+    const user = sanitizeAuthUser("patient", patient);
+    setSessionCookie(res, user);
+    res.status(201).json({ ok: true, message: "Compte patient cree avec succes", user });
   } catch (error) {
     next(error);
   }

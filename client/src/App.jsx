@@ -1334,9 +1334,12 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       setRegisterForm(emptyRegisterForm);
       setShowRegisterPassword(false);
       setShowRegisterConfirmPassword(false);
-      setAuthTab("login");
       setAuthFeedbackType("success");
       setAuthFeedback(result.message);
+      onLogin(result.user);
+      setLoginModalOpen(false);
+      window.history.pushState({}, "", result.user?.redirectPath ?? "/patient");
+      window.dispatchEvent(new Event("popstate"));
     } catch (registerError) {
       setAuthError(registerError.message);
     } finally {
