@@ -2565,22 +2565,23 @@ function AdminApp({ onLogout }) {
           </section>
         ) : null}
 
-        {activeSection === "patients" ? (
-          <section className="admin-panel">
-            <AdminTable
-              columns={["Prenom", "Nom", "Telephone", "Wilaya", "Pathologies", "Actions"]}
-              rows={filteredRows}
-              emptyText="Aucun patient"
-              renderRow={(row) => (
-                <tr key={row.id}>
-                  <td>{row.first_name}</td>
-                  <td>{row.last_name}</td>
-                  <td>{row.phone}</td>
-                  <td>{row.wilaya}</td>
-                  <td>{row.conditions}</td>
-                  <td>
-                    <div className="admin-actions-inline">
-                      <button
+          {activeSection === "patients" ? (
+            <section className="admin-panel">
+              <AdminTable
+                columns={["Prenom", "Nom", "Telephone", "Wilaya", "Creation", "Pathologies", "Actions"]}
+                rows={filteredRows}
+                emptyText="Aucun patient"
+                renderRow={(row) => (
+                  <tr key={row.id}>
+                    <td>{row.first_name}</td>
+                    <td>{row.last_name}</td>
+                    <td>{row.phone}</td>
+                    <td>{row.wilaya}</td>
+                    <td>{formatOrderDateTime(row.created_at)}</td>
+                    <td>{row.conditions}</td>
+                    <td>
+                      <div className="admin-actions-inline">
+                        <button
                         type="button"
                         className="admin-table-button"
                         onClick={() =>
@@ -2615,22 +2616,23 @@ function AdminApp({ onLogout }) {
           </section>
         ) : null}
 
-        {activeSection === "pharmacies" ? (
-          <section className="admin-panel">
-            <AdminTable
-              columns={["Nom", "Responsable", "Telephone", "Zone", "Statut", "Actions"]}
-              rows={filteredRows}
-              emptyText="Aucune pharmacie"
-              renderRow={(row) => (
-                <tr key={row.id}>
-                  <td>{row.name}</td>
-                  <td>{row.manager_name}</td>
-                  <td>{row.phone}</td>
-                  <td>{row.zone_name}</td>
-                  <td>{getPharmacyStatusLabel(row.status)}</td>
-                  <td>
-                    <div className="admin-actions-inline">
-                      <button
+          {activeSection === "pharmacies" ? (
+            <section className="admin-panel">
+              <AdminTable
+                columns={["Nom", "Responsable", "Telephone", "Zone", "Creation", "Statut", "Actions"]}
+                rows={filteredRows}
+                emptyText="Aucune pharmacie"
+                renderRow={(row) => (
+                  <tr key={row.id}>
+                    <td>{row.name}</td>
+                    <td>{row.manager_name}</td>
+                    <td>{row.phone}</td>
+                    <td>{row.zone_name}</td>
+                    <td>{formatOrderDateTime(row.created_at)}</td>
+                    <td>{getPharmacyStatusLabel(row.status)}</td>
+                    <td>
+                      <div className="admin-actions-inline">
+                        <button
                         type="button"
                         className="admin-table-button"
                         onClick={() =>
