@@ -1915,6 +1915,7 @@ function AdminApp({ onLogout }) {
   const [settingsBusy, setSettingsBusy] = useState(false);
   const [catalogImportBusy, setCatalogImportBusy] = useState(false);
   const [restorePayload, setRestorePayload] = useState("");
+  const [adminOrderSort, setAdminOrderSort] = useState("recent_desc");
   const [whatsappDraft, setWhatsappDraft] = useState({
     sender_phone: "",
     api_token: "",
@@ -2019,6 +2020,30 @@ function AdminApp({ onLogout }) {
     const needle = query.toLowerCase();
     return rows.filter((row) => JSON.stringify(row).toLowerCase().includes(needle));
   }, [activeSection, entities, query]);
+
+  const sortedAdminOrderRows = useMemo(() => {
+    if (activeSection !== "orders") return filteredRows;
+    const rows = [...filteredRows];
+    return rows.sort((left, right) => {
+      if (adminOrderSort === "recent_asc" || adminOrderSort === "recent_desc") {
+        const leftTime = new Date(left.created_at ?? 0).getTime();
+        const rightTime = new Date(right.created_at ?? 0).getTime();
+        return adminOrderSort === "recent_desc" ? rightTime - leftTime : leftTime - rightTime;
+      }
+
+      if (adminOrderSort === "amount_desc" || adminOrderSort === "amount_asc") {
+        const leftAmount = Number(left.amount ?? 0);
+        const rightAmount = Number(right.amount ?? 0);
+        return adminOrderSort === "amount_desc" ? rightAmount - leftAmount : leftAmount - rightAmount;
+      }
+
+      if (adminOrderSort === "status_asc") {
+        return getOrderStatusLabel(left.status).localeCompare(getOrderStatusLabel(right.status), "fr");
+      }
+
+      return 0;
+    });
+  }, [activeSection, adminOrderSort, filteredRows]);
 
   const adminSelects = useMemo(
     () => ({
@@ -2537,20 +2562,34 @@ function AdminApp({ onLogout }) {
         ) : null}
 
         {activeSection === "orders" ? (
-          <section className="admin-panel">
-            <AdminTable
-              columns={["Patient", "Pharmacie", "Livreur", "Montant", "Statut", "Actions"]}
-              rows={filteredRows}
-              emptyText="Aucune commande"
-              renderRow={(row) => (
-                <tr key={row.id}>
-                  <td>{row.patient_name ?? "-"}</td>
-                  <td>{row.pharmacy_name ?? "-"}</td>
-                  <td>{row.driver_name ?? "-"}</td>
-                  <td>{Number(row.amount).toLocaleString("fr-FR")} DA</td>
-                  <td>{getOrderStatusLabel(row.status)}</td>
-                  <td>
-                    <div className="admin-actions-inline">
+            <section className="admin-panel">
+              <div className="orders-toolbar">
+                <span>{sortedAdminOrderRows.length} commande{sortedAdminOrderRows.length > 1 ? "s" : ""}</span>
+                <label className="orders-sort">
+                  <span>Trier</span>
+                  <select value={adminOrderSort} onChange={(event) => setAdminOrderSort(event.target.value)}>
+                    <option value="recent_desc">Plus recentes</option>
+                    <option value="recent_asc">Plus anciennes</option>
+                    <option value="amount_desc">Montant decroissant</option>
+                    <option value="amount_asc">Montant croissant</option>
+                    <option value="status_asc">Statut</option>
+                  </select>
+                </label>
+              </div>
+              <AdminTable
+                columns={["Patient", "Pharmacie", "Livreur", "Montant", "Statut", "Date / Heure", "Actions"]}
+                rows={sortedAdminOrderRows}
+                emptyText="Aucune commande"
+                renderRow={(row) => (
+                  <tr key={row.id}>
+                    <td>{row.patient_name ?? "-"}</td>
+                    <td>{row.pharmacy_name ?? "-"}</td>
+                    <td>{row.driver_name ?? "-"}</td>
+                    <td>{Number(row.amount).toLocaleString("fr-FR")} DA</td>
+                    <td>{getOrderStatusLabel(row.status)}</td>
+                    <td>{formatOrderDateTime(row.created_at)}</td>
+                    <td>
+                      <div className="admin-actions-inline">
                        <button type="button" className="admin-table-button" onClick={() => openAdminOrderPharmacy(row)} title="Voir la pharmacie" aria-label="Voir la pharmacie">🏥</button>
                       <button type="button" className="admin-primary-button" onClick={() => adminUpdateOrderStatus(row.id, "confirmed", "confirmation")} title="Confirmer" aria-label="Confirmer la commande">✓</button>
                       <button type="button" className="admin-table-button" onClick={() => triggerOrderWhatsapp(row.id, "mission_livreur")} title="Affecter livreur" aria-label="Envoyer mission livreur" disabled={!row.driver_id}>🛵</button>
