@@ -459,6 +459,19 @@ function formatOrderDate(value) {
   });
 }
 
+function formatOrderDateTime(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
 function getTimelineStepIndex(status) {
   const normalized = String(status ?? "").toLowerCase();
   if (["pending", "en attente"].includes(normalized)) return 0;
@@ -703,9 +716,45 @@ function openWhatsappUrl(url) {
 
 function SimpleOrdersTable({ rows, actions }) {
   const timelineLabels = ["En attente", "Confirmee", "En livraison", "Livree"];
+  const [sortKey, setSortKey] = useState("recent_desc");
+  const sortedRows = useMemo(() => {
+    const clonedRows = [...rows];
+    return clonedRows.sort((left, right) => {
+      if (sortKey === "recent_asc" || sortKey === "recent_desc") {
+        const leftTime = new Date(left.created_at ?? 0).getTime();
+        const rightTime = new Date(right.created_at ?? 0).getTime();
+        return sortKey === "recent_desc" ? rightTime - leftTime : leftTime - rightTime;
+      }
+
+      if (sortKey === "amount_desc" || sortKey === "amount_asc") {
+        const leftAmount = Number(left.amount ?? 0);
+        const rightAmount = Number(right.amount ?? 0);
+        return sortKey === "amount_desc" ? rightAmount - leftAmount : leftAmount - rightAmount;
+      }
+
+      if (sortKey === "status_asc") {
+        return getOrderStatusLabel(left.status).localeCompare(getOrderStatusLabel(right.status), "fr");
+      }
+
+      return 0;
+    });
+  }, [rows, sortKey]);
 
   return (
     <div className="admin-table-shell">
+      <div className="orders-toolbar">
+        <span>{rows.length} commande{rows.length > 1 ? "s" : ""}</span>
+        <label className="orders-sort">
+          <span>Trier</span>
+          <select value={sortKey} onChange={(event) => setSortKey(event.target.value)}>
+            <option value="recent_desc">Plus recentes</option>
+            <option value="recent_asc">Plus anciennes</option>
+            <option value="amount_desc">Montant decroissant</option>
+            <option value="amount_asc">Montant croissant</option>
+            <option value="status_asc">Statut</option>
+          </select>
+        </label>
+      </div>
       <table className="admin-table">
         <thead>
           <tr>
@@ -717,17 +766,17 @@ function SimpleOrdersTable({ rows, actions }) {
             <th>Suivi</th>
             {actions ? <th>Actions</th> : null}
           </tr>
-        </thead>
-        <tbody>
-          {rows.length ? (
-            rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <div className="order-line-main">{row.products}</div>
-                  <div className="order-line-sub">Le {formatOrderDate(row.created_at)}</div>
-                </td>
-                <td>{row.pharmacy_name ?? "-"}</td>
-                <td>{row.driver_name ?? "-"}</td>
+          </thead>
+          <tbody>
+            {sortedRows.length ? (
+              sortedRows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <div className="order-line-main">{row.products}</div>
+                    <div className="order-line-sub">Le {formatOrderDateTime(row.created_at)}</div>
+                  </td>
+                  <td>{row.pharmacy_name ?? "-"}</td>
+                  <td>{row.driver_name ?? "-"}</td>
                 <td>{Number(row.amount).toLocaleString("fr-FR")} DA</td>
                 <td>
                   <span className={getStatusBadgeClass(row.status)}>

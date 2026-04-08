@@ -1784,6 +1784,33 @@ select {
   overflow-x: auto;
 }
 
+.orders-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: #7081a1;
+}
+
+.orders-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.orders-sort select {
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(128, 155, 212, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(236, 242, 252, 0.94));
+  color: #183468;
+  font-size: 11px;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
