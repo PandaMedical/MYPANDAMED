@@ -379,6 +379,7 @@ select {
 }
 
 .filter-pill {
+  flex: 1 1 0;
   min-height: 34px;
   min-width: 0;
   padding: 0 14px;

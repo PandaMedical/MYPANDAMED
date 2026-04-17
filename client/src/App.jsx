@@ -1465,7 +1465,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
       <div className="store-body">
         <section className="store-hero">
-          <h1>De votre pharmacien à vous 24/7 en un clic et en livraison Verte.</h1>
+          <h1>De votre pharmacie à vous, 24/7, en un clic et livraison Verte</h1>
         </section>
 
         <section className="filters-panel">
