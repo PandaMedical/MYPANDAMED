@@ -1466,9 +1466,6 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       <div className="store-body">
         <section className="store-hero">
           <h1>Des pharmaciens aux patients, en toute confiance en un clic et en vert.</h1>
-          <div className="store-hero-banner">
-            <img src="/logopandamed.png" alt="PandaMed" />
-          </div>
         </section>
 
         <section className="filters-panel">
