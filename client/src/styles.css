@@ -47,10 +47,7 @@ select {
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background:
-    radial-gradient(circle at 82% 18%, rgba(82, 174, 232, 0.14), transparent 16%),
-    radial-gradient(circle at 12% 50%, rgba(245, 182, 51, 0.12), transparent 18%),
-    linear-gradient(135deg, #122044, #162650 48%, #1b2f63 76%, #284786 100%);
+  background: rgba(36, 132, 166, 0.9);
 }
 
 .store-header > :first-child {
@@ -373,7 +370,7 @@ select {
   margin: 0;
   font-size: 11px;
   text-transform: uppercase;
-  color: var(--muted);
+  color: #ffffff;
 }
 
 .filter-pill {
