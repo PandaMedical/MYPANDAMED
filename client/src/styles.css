@@ -362,8 +362,9 @@ select {
 
 .filter-pills-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  align-items: stretch;
 }
 
 .filter-group-therapeutic {
@@ -379,8 +380,13 @@ select {
 
 .filter-pill {
   min-height: 34px;
+  min-width: 0;
   padding: 0 14px;
-  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
   background: white;
   color: #6179a5;
   border: 1px solid #d5dfef;
@@ -1374,6 +1380,10 @@ select {
 
   .filters-panel {
     grid-template-columns: 1fr;
+  }
+
+  .filter-pills-row {
+    flex-wrap: wrap;
   }
 
   .store-hero h1 {
