@@ -1464,19 +1464,28 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       </header>
 
       <div className="store-body">
-        <aside className="filters-panel">
+        <section className="store-hero">
+          <h1>Des pharmaciens aux patients, en toute confiance en un clic et en vert.</h1>
+          <div className="store-hero-banner">
+            <img src="/logopandamed.png" alt="PandaMed" />
+          </div>
+        </section>
+
+        <section className="filters-panel">
           <input className="search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Rechercher..." />
 
-          <div className="filter-group">
+          <div className="filter-group filter-group-categories">
             <h2>Categorie</h2>
-            {Object.entries(categoryMap).map(([key, label]) => (
-              <button key={key} type="button" className={category === key ? "filter-pill active" : "filter-pill"} onClick={() => setCategory(key)}>
-                {label}
-              </button>
-            ))}
+            <div className="filter-pills-row">
+              {Object.entries(categoryMap).map(([key, label]) => (
+                <button key={key} type="button" className={category === key ? "filter-pill active" : "filter-pill"} onClick={() => setCategory(key)}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="filter-group">
+          <div className="filter-group filter-group-therapeutic">
             <h2>Classe therapeutique</h2>
             <select value={therapeuticClass} onChange={(event) => setTherapeuticClass(event.target.value)}>
               {classOptions.map((option) => (
@@ -1486,9 +1495,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
               ))}
             </select>
           </div>
-
-          <footer className="sidebar-foot">© 2025 PandaMed - Annaba - Algerie</footer>
-        </aside>
+        </section>
 
         <main className="catalog-shell">
           {pageError ? <div className="error-banner">{pageError}</div> : null}
@@ -1501,8 +1508,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       </div>
 
       <footer className="store-footer">
-        <span>Catalogue medicaments sans ordonnance et produits parapharmaceutiques</span>
-        <span>v1.0 - Tous droits reserves</span>
+        <span>© 2025 PandaMed - Annaba - Algerie</span>
       </footer>
 
       {cartOpen ? (
