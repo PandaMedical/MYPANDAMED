@@ -45,7 +45,8 @@ select {
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: rgba(36, 132, 166, 0.9);
+  background: #ffffff;
+  border-bottom: 1px solid rgba(56, 105, 188, 0.1);
 }
 
 .store-header > :first-child {
@@ -602,11 +603,11 @@ select {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: rgba(255, 255, 255, 0.88);
+  color: #1f9b50;
   font-size: 13px;
   font-weight: 700;
-  background: rgba(36, 132, 166, 0.9);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border-top: 1px solid rgba(56, 105, 188, 0.1);
   gap: 24px;
 }
 

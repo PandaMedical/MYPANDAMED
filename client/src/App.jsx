@@ -1465,7 +1465,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
       <div className="store-body">
         <section className="store-hero">
-          <h1>MY PANDAMED</h1>
+          <h1>MyPandaMed</h1>
           <p className="store-hero-subtitle">Votre pharmacie chez vous de jour comme de nuit 7/7</p>
         </section>
 
