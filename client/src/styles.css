@@ -310,6 +310,21 @@ select {
   text-align: center;
   letter-spacing: -0.03em;
   text-shadow: 0 8px 22px rgba(8, 18, 42, 0.34);
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+
+.store-hero h1 span {
+  display: block;
+}
+
+.store-hero h1 small {
+  display: block;
+  font-size: clamp(11px, 1.4vw, 15px);
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .store-hero-banner {

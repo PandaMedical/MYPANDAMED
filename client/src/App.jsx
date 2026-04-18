@@ -1465,7 +1465,10 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
       <div className="store-body">
         <section className="store-hero">
-          <h1>De votre pharmacie à vous, 24/7, en un clic et livraison Verte</h1>
+          <h1>
+            <span>MY PANDAMED</span>
+            <small>Votre pharmacie chez vous de jour comme de nuit 7/7</small>
+          </h1>
         </section>
 
         <section className="filters-panel">
@@ -1506,6 +1509,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
       <footer className="store-footer">
         <span>© 2025 PandaMed - Annaba - Algerie</span>
+        <span>Vos medicaments livres 24/24 partout en Algerie</span>
       </footer>
 
       {cartOpen ? (
