@@ -1421,87 +1421,101 @@ select {
   }
 
   .store-header {
-    gap: 6px;
-    padding: 8px 10px;
+    gap: 4px;
+    padding: 6px 8px;
   }
 
   .brand-panel img {
-    max-height: 42px;
+    max-height: 30px;
   }
 
   .sponsor-panel {
-    min-height: 42px;
-    padding: 6px 8px;
-    grid-template-columns: 52px 1fr auto;
-    gap: 8px;
+    min-height: 34px;
+    padding: 4px 6px;
+    grid-template-columns: 44px 1fr auto;
+    gap: 6px;
   }
 
   .sponsor-logo {
-    width: 52px;
-    height: 34px;
+    width: 44px;
+    height: 28px;
   }
 
   .sponsor-copy strong {
-    font-size: 11px;
+    font-size: 9px;
   }
 
   .sponsor-copy span,
   .sponsor-tag {
-    font-size: 8px;
+    font-size: 7px;
+  }
+
+  .sponsor-meta {
+    gap: 4px;
+  }
+
+  .header-actions {
+    gap: 4px;
+    flex-wrap: nowrap;
   }
 
   .header-button,
   .cart-button {
     min-width: 0;
-    min-height: 32px;
-    padding: 0 10px;
-    font-size: 9px;
+    min-height: 28px;
+    padding: 0 8px;
+    font-size: 8px;
+    border-radius: 10px;
   }
 
   .catalog-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
   }
 
   .store-footer {
     flex-direction: column;
-    gap: 8px;
-    padding: 14px;
+    gap: 4px;
+    padding: 10px 8px;
+    font-size: 10px;
   }
 
   .store-body {
-    gap: 10px;
-    padding: 10px 8px 0;
+    gap: 6px;
+    padding: 6px 6px 0;
   }
 
   .store-hero {
-    gap: 4px;
+    gap: 2px;
   }
 
   .store-hero h1 {
-    font-size: 16px;
-    gap: 2px;
+    font-size: 13px;
+    gap: 0;
+    line-height: 1.02;
     text-align: center;
   }
 
   .store-hero h1 small {
-    font-size: 16px;
+    font-size: 11px;
+    line-height: 1.05;
     white-space: normal;
   }
 
   .filters-panel {
-    gap: 8px;
+    gap: 6px;
   }
 
   .search-input,
   .filters-panel select {
-    min-height: 34px;
-    padding: 0 12px;
-    font-size: 11px;
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 10px;
+    border-radius: 10px;
   }
 
   .filter-group {
-    gap: 4px;
+    gap: 2px;
   }
 
   .filter-group h2 {
@@ -1509,14 +1523,59 @@ select {
   }
 
   .filter-pills-row {
-    gap: 6px;
+    gap: 4px;
     flex-wrap: nowrap;
   }
 
   .filter-pill {
-    min-height: 30px;
-    padding: 0 8px;
-    font-size: 10px;
+    min-height: 28px;
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  .catalog-shell {
+    padding: 0;
+  }
+
+  .product-card {
+    min-height: 104px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .product-card-body {
+    grid-template-columns: minmax(0, 1fr) 58px;
+    gap: 4px;
+    min-height: 88px;
+  }
+
+  .product-media {
+    min-height: 58px;
+    padding: 2px 0 0;
+  }
+
+  .product-image {
+    max-height: 54px;
+  }
+
+  .product-chip {
+    font-size: 6px;
+    padding: 3px 6px;
+  }
+
+  .product-card h3 {
+    font-size: 9px;
+  }
+
+  .product-card p,
+  .product-footer strong {
+    font-size: 8px;
+  }
+
+  .product-add-button {
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
   }
 
   .driver-grid-form {
