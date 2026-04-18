@@ -321,7 +321,7 @@ select {
 
 .store-hero h1 small {
   display: block;
-  font-size: clamp(11px, 1.4vw, 15px);
+  font-size: inherit;
   font-weight: 700;
   line-height: 1.1;
   white-space: nowrap;
