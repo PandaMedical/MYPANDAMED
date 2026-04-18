@@ -1400,7 +1400,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     <div className="storefront">
       <header className="store-header">
         <div className="brand-panel">
-          <img src="/logopandamed.png" alt="MyPandaMed" />
+          <img src="/logopandamed.jpeg" alt="MyPandaMed" />
         </div>
 
         <div className="header-actions">
@@ -2423,7 +2423,7 @@ function AdminApp({ onLogout }) {
   return (
     <div className="admin-layout">
       <aside className="admin-sidebar">
-        <img className="admin-logo" src="/logopandamed.png" alt="MyPandaMed" />
+        <img className="admin-logo" src="/logopandamed.jpeg" alt="MyPandaMed" />
         <div className="admin-nav">
           {adminSections.map(([id, label]) => (
             <button key={id} type="button" className={activeSection === id ? "admin-nav-item active" : "admin-nav-item"} onClick={() => setActiveSection(id)}>
