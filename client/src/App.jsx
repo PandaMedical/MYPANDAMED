@@ -1403,31 +1403,6 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
           <img src="/logopandamed.png" alt="MyPandaMed" />
         </div>
 
-        <div className="sponsor-panel">
-          <div className="sponsor-logo">{getSponsorLogoContent(activeSponsor.logo, activeSponsor.name)}</div>
-            <div className="sponsor-copy">
-              <strong>{activeSponsor.name}</strong>
-              <span>{activeSponsor.slogan}</span>
-            </div>
-            <div className="sponsor-meta">
-              <div className="sponsor-tag">{getSponsorWebsiteLabel(activeSponsor.website)}</div>
-              {orderedSponsors.length > 1 ? (
-                <div className="sponsor-dots" aria-label="Carrousel sponsors">
-                  {orderedSponsors.map((item, index) => (
-                  <button
-                    key={`${item.id ?? item.name}-${index}`}
-                    type="button"
-                    className={index === sponsorIndex ? "sponsor-dot active" : "sponsor-dot"}
-                    onClick={() => setSponsorIndex(index)}
-                    title={item.name}
-                    aria-label={item.name}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-
         <div className="header-actions">
           <button type="button" className="header-button driver" onClick={() => setDriverModalOpen(true)} title="Devenir Livreur" aria-label="Devenir Livreur">
             Devenir Livreur
