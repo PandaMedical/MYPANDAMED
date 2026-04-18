@@ -1420,8 +1420,47 @@ select {
     justify-content: flex-start;
   }
 
+  .store-header {
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .brand-panel img {
+    max-height: 42px;
+  }
+
+  .sponsor-panel {
+    min-height: 42px;
+    padding: 6px 8px;
+    grid-template-columns: 52px 1fr auto;
+    gap: 8px;
+  }
+
+  .sponsor-logo {
+    width: 52px;
+    height: 34px;
+  }
+
+  .sponsor-copy strong {
+    font-size: 11px;
+  }
+
+  .sponsor-copy span,
+  .sponsor-tag {
+    font-size: 8px;
+  }
+
+  .header-button,
+  .cart-button {
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 9px;
+  }
+
   .catalog-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .store-footer {
@@ -1431,16 +1470,53 @@ select {
   }
 
   .store-body {
-    padding: 16px 12px 0;
+    gap: 10px;
+    padding: 10px 8px 0;
   }
 
-  .store-hero-banner {
-    min-height: 120px;
-    padding: 14px;
+  .store-hero {
+    gap: 4px;
   }
 
-  .store-hero-banner img {
-    max-height: 88px;
+  .store-hero h1 {
+    font-size: 16px;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .store-hero h1 small {
+    font-size: 16px;
+    white-space: normal;
+  }
+
+  .filters-panel {
+    gap: 8px;
+  }
+
+  .search-input,
+  .filters-panel select {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+
+  .filter-group {
+    gap: 4px;
+  }
+
+  .filter-group h2 {
+    font-size: 8px;
+  }
+
+  .filter-pills-row {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .filter-pill {
+    min-height: 30px;
+    padding: 0 8px;
+    font-size: 10px;
   }
 
   .driver-grid-form {
