@@ -2951,6 +2951,21 @@ function AdminApp({ onLogout }) {
               </div>
               <div className="admin-settings-tools">
                 <div className="admin-settings-card">
+                  <strong>Import produits CSV</strong>
+                  <p>Importer un fichier CSV compatible pour alimenter le catalogue.</p>
+                  <p>Format : <code>name;category;form;unit;price;reference;image;contraindications;is_active</code></p>
+                  <input
+                    ref={catalogImportInputRef}
+                    type="file"
+                    accept=".csv,.txt"
+                    onChange={importCatalogFile}
+                  />
+                  <div className="admin-actions-inline">
+                    <button type="button" className="admin-table-button" onClick={downloadCatalogTemplate} title="Telecharger le modele CSV" aria-label="Telecharger le modele CSV">⇩</button>
+                    <button type="button" className="admin-primary-button" onClick={() => catalogImportInputRef.current?.click()} title="Importer le fichier CSV" aria-label="Importer le fichier CSV" disabled={catalogImportBusy}>⇪</button>
+                  </div>
+                </div>
+                <div className="admin-settings-card">
                   <strong>Sauvegarde</strong>
                   <p>Exporter toute la base au format JSON.</p>
                   <button type="button" className="admin-primary-button" onClick={downloadBackup} title="Telecharger la sauvegarde" aria-label="Telecharger la sauvegarde" disabled={settingsBusy}>⭳</button>
