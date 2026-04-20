@@ -1868,17 +1868,12 @@ select {
 }
 
 .whatsapp-template-list button {
-  border: 1px solid rgba(92, 170, 120, 0.24);
-  color: #1b7e47;
-}
-
-.whatsapp-template-list button {
   min-height: 28px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(128, 155, 212, 0.24);
+  border: 1px solid rgba(92, 170, 120, 0.24);
   background: white;
-  color: #1b3d7a;
+  color: #1b7e47;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -1941,8 +1936,8 @@ select {
   gap: 2px;
   padding: 10px;
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(244, 248, 255, 0.98), rgba(232, 239, 251, 0.96));
-  border: 1px solid rgba(126, 153, 208, 0.18);
+  background: linear-gradient(180deg, rgba(247, 253, 249, 0.98), rgba(236, 247, 240, 0.96));
+  border: 1px solid rgba(92, 170, 120, 0.18);
 }
 
 .whatsapp-log-item span,
@@ -1954,7 +1949,7 @@ select {
 
 .whatsapp-log-item strong {
   font-size: 12px;
-  color: #274573;
+  color: #1b7e47;
 }
 
 .admin-metrics-grid {
