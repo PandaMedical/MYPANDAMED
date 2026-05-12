@@ -91,6 +91,7 @@ const adminEntityConfig = {
       first_name: "",
       last_name: "",
       phone: "",
+      whatsapp: "",
       email: "",
       zone_name: "",
       vehicle: "moto",
@@ -2404,6 +2405,15 @@ function AdminApp({ onLogout }) {
     }
   }
 
+  async function handleOrderDriverAction(row) {
+    setError("");
+    if (!row?.driver_id) {
+      await openAdminModal("orders", row);
+      return;
+    }
+    await triggerOrderWhatsapp(row.id, "mission_livreur");
+  }
+
   async function adminUpdateOrderStatus(orderId, status, whatsappAction = "") {
     setError("");
     try {
@@ -2411,8 +2421,9 @@ function AdminApp({ onLogout }) {
         method: "POST",
         body: JSON.stringify({ status })
       });
-      if (whatsappAction) {
-        await triggerOrderWhatsapp(orderId, whatsappAction);
+      const actions = Array.isArray(whatsappAction) ? whatsappAction : whatsappAction ? [whatsappAction] : [];
+      for (const action of actions) {
+        await triggerOrderWhatsapp(orderId, action);
       }
       await refreshAdminView("orders");
     } catch (statusError) {
@@ -2571,8 +2582,16 @@ function AdminApp({ onLogout }) {
                     <td>
                       <div className="admin-actions-inline">
                        <button type="button" className="admin-table-button" onClick={() => openAdminOrderPharmacy(row)} title="Voir la pharmacie" aria-label="Voir la pharmacie">🏥</button>
-                      <button type="button" className="admin-primary-button" onClick={() => adminUpdateOrderStatus(row.id, "confirmed", "confirmation")} title="Confirmer" aria-label="Confirmer la commande">✓</button>
-                      <button type="button" className="admin-table-button" onClick={() => triggerOrderWhatsapp(row.id, "mission_livreur")} title="Affecter livreur" aria-label="Envoyer mission livreur" disabled={!row.driver_id}>🛵</button>
+                      <button type="button" className="admin-primary-button" onClick={() => adminUpdateOrderStatus(row.id, "confirmed", ["confirmation", "pharmacie"])} title="Confirmer" aria-label="Confirmer la commande">✓</button>
+                      <button
+                        type="button"
+                        className="admin-table-button"
+                        onClick={() => handleOrderDriverAction(row)}
+                        title={row.driver_id ? "Envoyer mission livreur" : "Affecter un livreur"}
+                        aria-label={row.driver_id ? "Envoyer mission livreur" : "Affecter un livreur"}
+                      >
+                        🛵
+                      </button>
                       <button type="button" className="admin-table-button" onClick={() => adminUpdateOrderStatus(row.id, "delivered", "livree")} title="Livree" aria-label="Marquer la commande comme livree">📦</button>
                       <button type="button" className="admin-table-button" onClick={() => openAdminModal("orders", row)} title="Modifier" aria-label="Modifier la commande">✎</button>
                       <button type="button" className="admin-danger-button" onClick={() => quickDeleteEntity("orders", row.id)} title="Supprimer" aria-label="Supprimer la commande">🗑</button>
@@ -3043,6 +3062,7 @@ function AdminApp({ onLogout }) {
                 <label><span>Prenom</span><input value={adminModal.values.first_name ?? ""} onChange={(event) => updateAdminField("first_name", event.target.value)} /></label>
                 <label><span>Nom</span><input value={adminModal.values.last_name ?? ""} onChange={(event) => updateAdminField("last_name", event.target.value)} /></label>
                 <label><span>Telephone</span><input value={adminModal.values.phone ?? ""} onChange={(event) => updateAdminField("phone", event.target.value)} /></label>
+                <label><span>WhatsApp</span><input value={adminModal.values.whatsapp ?? ""} onChange={(event) => updateAdminField("whatsapp", event.target.value)} /></label>
                 <label><span>Email</span><input value={adminModal.values.email ?? ""} onChange={(event) => updateAdminField("email", event.target.value)} /></label>
                 <label><span>Mot de passe</span><input value={adminModal.values.password ?? ""} onChange={(event) => updateAdminField("password", event.target.value)} /></label>
                 <label><span>Date de naissance</span><input type="date" value={adminModal.values.date_of_birth ?? ""} onChange={(event) => updateAdminField("date_of_birth", event.target.value)} /></label>

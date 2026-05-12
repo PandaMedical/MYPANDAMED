@@ -93,6 +93,7 @@ const requiredTableColumns = {
     first_name: "TEXT",
     last_name: "TEXT",
     phone: "TEXT",
+    whatsapp: "TEXT",
     email: "TEXT",
     password: "TEXT",
     zone_name: "TEXT",
@@ -360,7 +361,7 @@ const entityConfig = {
   drivers: {
     table: "drivers",
     orderBy: "created_at DESC",
-    columns: ["first_name", "last_name", "phone", "email", "password", "zone_name", "vehicle", "status", "rating", "packages_count", "revenue"]
+    columns: ["first_name", "last_name", "phone", "whatsapp", "email", "password", "zone_name", "vehicle", "status", "rating", "packages_count", "revenue"]
   },
   catalog: {
     table: "catalog_items",
@@ -548,6 +549,7 @@ async function createTables() {
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     phone TEXT NOT NULL,
+    whatsapp TEXT,
     email TEXT,
     password TEXT,
     zone_name TEXT,
@@ -947,6 +949,7 @@ async function listOrders() {
       ph.status AS pharmacy_status,
       d.first_name || ' ' || d.last_name AS driver_name,
       d.phone AS driver_phone,
+      d.whatsapp AS driver_whatsapp,
       d.email AS driver_email,
       d.zone_name AS driver_zone_name,
       d.vehicle AS driver_vehicle,
@@ -980,7 +983,8 @@ async function buildWhatsappOrderMessage(orderId, action) {
         ph.phone AS pharmacy_phone,
         ph.whatsapp AS pharmacy_whatsapp,
         d.first_name || ' ' || d.last_name AS driver_name,
-        d.phone AS driver_phone
+        d.phone AS driver_phone,
+        d.whatsapp AS driver_whatsapp
        FROM orders o
        LEFT JOIN patients p ON p.id = o.patient_id
        LEFT JOIN pharmacies ph ON ph.id = o.pharmacy_id
@@ -1006,7 +1010,7 @@ async function buildWhatsappOrderMessage(orderId, action) {
     en_route: order.patient_phone,
     livree: order.patient_phone,
     pharmacie: order.pharmacy_whatsapp || order.pharmacy_phone,
-    mission_livreur: order.driver_phone
+    mission_livreur: order.driver_whatsapp || order.driver_phone
   };
 
   const recipient = String(recipientMap[action] ?? "").replace(/\D/g, "");
@@ -1505,12 +1509,13 @@ app.post("/api/settings/driver-applications/:id/approve", async (req, res, next)
 
     if (!existingDriver) {
       await run(
-        `INSERT INTO drivers (first_name, last_name, phone, email, password, zone_name, vehicle, status, rating, packages_count, revenue)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'actif', 0, 0, 0)`,
+        `INSERT INTO drivers (first_name, last_name, phone, whatsapp, email, password, zone_name, vehicle, status, rating, packages_count, revenue)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'actif', 0, 0, 0)`,
         [
           application.first_name,
           application.last_name,
           application.phone,
+          application.whatsapp ?? null,
           application.email ?? null,
           application.password ?? application.phone,
           application.delivery_zone ?? application.wilaya ?? null,
@@ -1522,6 +1527,7 @@ app.post("/api/settings/driver-applications/:id/approve", async (req, res, next)
         `UPDATE drivers
          SET first_name = COALESCE(NULLIF(?, ''), first_name),
              last_name = COALESCE(NULLIF(?, ''), last_name),
+             whatsapp = COALESCE(NULLIF(?, ''), whatsapp),
              email = COALESCE(NULLIF(?, ''), email),
              password = COALESCE(NULLIF(?, ''), password),
              zone_name = COALESCE(NULLIF(?, ''), zone_name),
@@ -1532,6 +1538,7 @@ app.post("/api/settings/driver-applications/:id/approve", async (req, res, next)
         [
           application.first_name ?? "",
           application.last_name ?? "",
+          application.whatsapp ?? "",
           application.email ?? "",
           application.password ?? application.phone ?? "",
           application.delivery_zone ?? application.wilaya ?? "",
@@ -1575,12 +1582,13 @@ app.post("/api/settings/review", async (req, res, next) => {
 
           if (!existingDriver) {
             await run(
-              `INSERT INTO drivers (first_name, last_name, phone, email, password, zone_name, vehicle, status, rating, packages_count, revenue)
-               VALUES (?, ?, ?, ?, ?, ?, ?, 'actif', 0, 0, 0)`,
+              `INSERT INTO drivers (first_name, last_name, phone, whatsapp, email, password, zone_name, vehicle, status, rating, packages_count, revenue)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'actif', 0, 0, 0)`,
               [
                 application.first_name,
                 application.last_name,
                 application.phone,
+                application.whatsapp ?? null,
                 application.email ?? null,
                 application.password ?? application.phone,
                 application.delivery_zone ?? application.wilaya ?? null,
@@ -1592,6 +1600,7 @@ app.post("/api/settings/review", async (req, res, next) => {
               `UPDATE drivers
                SET first_name = COALESCE(NULLIF(?, ''), first_name),
                    last_name = COALESCE(NULLIF(?, ''), last_name),
+                   whatsapp = COALESCE(NULLIF(?, ''), whatsapp),
                    email = COALESCE(NULLIF(?, ''), email),
                    password = COALESCE(NULLIF(?, ''), password),
                    zone_name = COALESCE(NULLIF(?, ''), zone_name),
@@ -1602,6 +1611,7 @@ app.post("/api/settings/review", async (req, res, next) => {
               [
                 application.first_name ?? "",
                 application.last_name ?? "",
+                application.whatsapp ?? "",
                 application.email ?? "",
                 application.password ?? application.phone ?? "",
                 application.delivery_zone ?? application.wilaya ?? "",
