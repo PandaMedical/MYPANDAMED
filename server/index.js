@@ -1379,27 +1379,38 @@ app.delete("/api/orders/:id", async (req, res, next) => {
   }
 });
 
+async function createDriverApplication(payload = {}) {
+  const insert = await run(
+    `INSERT INTO driver_applications (
+      first_name, last_name, phone, whatsapp, email, wilaya, delivery_zone, vehicle, availability, motivation
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      payload.first_name ?? "",
+      payload.last_name ?? "",
+      payload.phone ?? "",
+      payload.whatsapp ?? null,
+      payload.email ?? null,
+      payload.wilaya ?? null,
+      payload.delivery_zone ?? null,
+      payload.vehicle ?? "",
+      Array.isArray(payload.availability) ? payload.availability.join(", ") : payload.availability ?? "",
+      payload.motivation ?? null
+    ]
+  );
+  return get("SELECT * FROM driver_applications WHERE id = ?", [insert.lastID]);
+}
+
 app.post("/api/driver-applications", async (req, res, next) => {
   try {
-    const payload = req.body ?? {};
-    const insert = await run(
-      `INSERT INTO driver_applications (
-        first_name, last_name, phone, whatsapp, email, wilaya, delivery_zone, vehicle, availability, motivation
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        payload.first_name ?? "",
-        payload.last_name ?? "",
-        payload.phone ?? "",
-        payload.whatsapp ?? null,
-        payload.email ?? null,
-        payload.wilaya ?? null,
-        payload.delivery_zone ?? null,
-        payload.vehicle ?? "",
-        Array.isArray(payload.availability) ? payload.availability.join(", ") : payload.availability ?? "",
-        payload.motivation ?? null
-      ]
-    );
-    res.status(201).json(await get("SELECT * FROM driver_applications WHERE id = ?", [insert.lastID]));
+    res.status(201).json(await createDriverApplication(req.body ?? {}));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/settings/driver-applications", async (req, res, next) => {
+  try {
+    res.status(201).json(await createDriverApplication(req.body ?? {}));
   } catch (error) {
     next(error);
   }

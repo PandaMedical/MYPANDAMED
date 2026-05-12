@@ -1272,7 +1272,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     setDriverError("");
     setDriverSuccess("");
     try {
-      await request("/driver-applications", {
+      await request("/settings/driver-applications", {
         method: "POST",
         body: JSON.stringify(driverForm)
       });
