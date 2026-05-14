@@ -1017,6 +1017,7 @@ function PatientSpaceApp({ currentUser, onLogout }) {
 }
 
 function StorefrontApp({ currentUser, onLogin, onLogout }) {
+  const catalogSectionRef = useRef(null);
   const [catalog, setCatalog] = useState([]);
   const [sponsors, setSponsors] = useState([]);
   const [search, setSearch] = useState("");
@@ -1397,6 +1398,10 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     }
   }
 
+  function scrollToCatalog() {
+    catalogSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <div className="storefront">
       <header className="store-header">
@@ -1405,12 +1410,6 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
         </div>
 
         <div className="header-actions">
-          <button type="button" className="header-button driver" onClick={() => setDriverModalOpen(true)} title="Devenir Livreur" aria-label="Devenir Livreur">
-            Devenir Livreur
-          </button>
-          <button type="button" className="header-button pharmacy" onClick={() => setPharmacyModalOpen(true)} title="Pharmacie - Cliquer ici" aria-label="Pharmacie - Cliquer ici">
-            Pharmacie - Cliquer ici
-          </button>
           <button
             type="button"
             className="header-button login"
@@ -1441,11 +1440,28 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
       <div className="store-body">
         <section className="store-hero">
-          <h1>MyPandaMed</h1>
-          <p className="store-hero-subtitle">Votre pharmacie chez vous de jour comme de nuit 7/7</p>
+          <div className="store-hero-visual">
+            <div className="store-hero-overlay">
+              <div className="store-hero-copy">
+                <h1>Votre pharmacie, simplement.</h1>
+                <p className="store-hero-subtitle">Choisissez vos produits, trouvez votre pharmacie et faites-vous livrer en toute confiance.</p>
+              </div>
+              <button type="button" className="hero-start-button" onClick={scrollToCatalog}>
+                Commencer ici
+              </button>
+            </div>
+          </div>
+          <div className="hero-bottom-actions">
+            <button type="button" className="hero-bottom-button driver" onClick={() => setDriverModalOpen(true)} title="Devenir Livreur" aria-label="Devenir Livreur">
+              Devenir Livreur
+            </button>
+            <button type="button" className="hero-bottom-button pharmacy" onClick={() => setPharmacyModalOpen(true)} title="Pharmacie - Cliquer ici" aria-label="Pharmacie - Cliquer ici">
+              Pharmacie - Cliquer ici
+            </button>
+          </div>
         </section>
 
-        <section className="filters-panel">
+        <section className="filters-panel" ref={catalogSectionRef}>
           <input className="search-input" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Rechercher..." />
 
           <div className="filter-group filter-group-categories">
