@@ -299,55 +299,14 @@ select {
   gap: 18px;
 }
 
-.store-hero h1 {
-  margin: 0;
-  font-size: clamp(28px, 3.8vw, 56px);
-  line-height: 1.12;
-  color: #ffffff;
-  text-align: left;
-  letter-spacing: -0.03em;
-  text-shadow: 0 18px 36px rgba(7, 27, 60, 0.42);
-}
-
-.store-hero-subtitle {
-  margin: 0;
-  max-width: 720px;
-  font-size: clamp(15px, 1.8vw, 24px);
-  font-weight: 700;
-  line-height: 1.28;
-  color: rgba(255, 255, 255, 0.96);
-  text-align: left;
-  letter-spacing: -0.02em;
-  text-shadow: 0 14px 30px rgba(7, 27, 60, 0.32);
-}
-
 .store-hero-visual {
   min-height: min(82vh, 980px);
-  padding: clamp(22px, 3vw, 38px);
   border-radius: 34px;
-  display: grid;
-  align-items: end;
   background:
-    linear-gradient(180deg, rgba(8, 31, 76, 0.12), rgba(8, 31, 76, 0.46)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.16)),
     url("/home-business-model.png") center top/cover no-repeat;
   box-shadow: 0 24px 52px rgba(5, 16, 42, 0.18);
   overflow: hidden;
-}
-
-.store-hero-overlay {
-  width: min(100%, 760px);
-  padding: clamp(18px, 2.4vw, 28px);
-  border-radius: 28px;
-  display: grid;
-  gap: 18px;
-  background: linear-gradient(180deg, rgba(9, 33, 80, 0.34), rgba(8, 31, 76, 0.64));
-  backdrop-filter: blur(6px);
-  box-shadow: 0 18px 40px rgba(5, 16, 42, 0.22);
-}
-
-.store-hero-copy {
-  display: grid;
-  gap: 10px;
 }
 
 .hero-start-button,
@@ -361,7 +320,7 @@ select {
 
 .hero-start-button {
   min-height: 56px;
-  width: fit-content;
+  min-width: 220px;
   padding: 0 28px;
   border-radius: 18px;
   background: linear-gradient(180deg, #2e7ae2 0%, #1f5fb2 55%, #163f7f 100%);
@@ -1559,32 +1518,8 @@ select {
 
   .store-hero-visual {
     min-height: 60vh;
-    padding: 14px;
     border-radius: 20px;
     background-position: center top;
-  }
-
-  .store-hero-overlay {
-    width: 100%;
-    padding: 14px;
-    border-radius: 18px;
-    gap: 12px;
-  }
-
-  .store-hero h1 {
-    margin: 0 !important;
-    padding: 0 !important;
-    font-size: 22px !important;
-    line-height: 1.08 !important;
-    text-align: left !important;
-  }
-
-  .store-hero-subtitle {
-    margin: 0 !important;
-    padding: 0 !important;
-    font-size: 12px !important;
-    line-height: 1.3 !important;
-    text-align: left !important;
   }
 
   .hero-start-button,

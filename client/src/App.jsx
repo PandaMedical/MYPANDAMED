@@ -1440,18 +1440,11 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
       <div className="store-body">
         <section className="store-hero">
-          <div className="store-hero-visual">
-            <div className="store-hero-overlay">
-              <div className="store-hero-copy">
-                <h1>Votre pharmacie, simplement.</h1>
-                <p className="store-hero-subtitle">Choisissez vos produits, trouvez votre pharmacie et faites-vous livrer en toute confiance.</p>
-              </div>
-              <button type="button" className="hero-start-button" onClick={scrollToCatalog}>
-                Commencer ici
-              </button>
-            </div>
-          </div>
+          <div className="store-hero-visual" />
           <div className="hero-bottom-actions">
+            <button type="button" className="hero-start-button" onClick={scrollToCatalog}>
+              Commencer ici
+            </button>
             <button type="button" className="hero-bottom-button driver" onClick={() => setDriverModalOpen(true)} title="Devenir Livreur" aria-label="Devenir Livreur">
               Devenir Livreur
             </button>
