@@ -333,7 +333,7 @@ select {
   border-radius: 34px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.16)),
-    #ffffff url("/home-business-model.png") center top/contain no-repeat;
+    #ffffff url("/home-business-model.png") center top/100% auto no-repeat;
   box-shadow: 0 24px 52px rgba(5, 16, 42, 0.18);
   overflow: hidden;
 }
