@@ -1409,6 +1409,11 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
           <img src="/logopandamed.png" alt="MyPandaMed" />
         </div>
 
+        <div className="header-tagline" aria-label="Votre pharmacie chez vous de jour comme de nuit 7 sur 7">
+          <span className="header-tagline-blue">Votre pharmacie chez vous</span>
+          <span className="header-tagline-green">de jour comme de nuit 7/7</span>
+        </div>
+
         <div className="header-actions">
           <button
             type="button"
