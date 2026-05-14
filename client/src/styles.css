@@ -318,23 +318,26 @@ select {
 .store-body {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 6px;
+  gap: 12px;
   padding: 6px 10px 0;
   background: transparent;
 }
 
 .store-hero {
   display: grid;
-  gap: 6px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: calc(100svh - 108px);
 }
 
 .store-hero-visual {
   width: 100%;
-  height: min(30vh, 280px);
+  height: 100%;
+  min-height: 0;
   border-radius: 34px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.16)),
-    #ffffff url("/home-business-model.png") center center/auto 100% no-repeat;
+    #ffffff url("/home-business-model.png") center center/100% 100% no-repeat;
   box-shadow: 0 24px 52px rgba(5, 16, 42, 0.18);
   overflow: hidden;
 }
@@ -365,7 +368,7 @@ select {
   display: flex;
   justify-content: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .hero-bottom-button {
@@ -1558,16 +1561,19 @@ select {
   }
 
   .store-hero {
+    grid-template-rows: minmax(0, 1fr) auto;
     gap: 6px !important;
+    min-height: calc(100svh - 86px);
     margin: 0 !important;
     padding: 0 !important;
   }
 
   .store-hero-visual {
     width: 100%;
-    height: min(20vh, 160px);
+    height: 100%;
+    min-height: 0;
     border-radius: 20px;
-    background-position: center top;
+    background-position: center center;
   }
 
   .hero-start-button,
@@ -1581,6 +1587,7 @@ select {
 
   .hero-bottom-actions {
     gap: 6px;
+    flex-wrap: nowrap;
   }
 
   .filters-panel {
