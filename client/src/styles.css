@@ -329,11 +329,12 @@ select {
 }
 
 .store-hero-visual {
-  min-height: min(58vh, 620px);
+  width: 100%;
+  aspect-ratio: 3 / 2;
   border-radius: 34px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.16)),
-    #ffffff url("/home-business-model.png") center top/100% auto no-repeat;
+    #ffffff url("/home-business-model.png") center center/contain no-repeat;
   box-shadow: 0 24px 52px rgba(5, 16, 42, 0.18);
   overflow: hidden;
 }
@@ -1563,7 +1564,8 @@ select {
   }
 
   .store-hero-visual {
-    min-height: 28vh;
+    width: 100%;
+    aspect-ratio: 3 / 2;
     border-radius: 20px;
     background-position: center top;
   }
