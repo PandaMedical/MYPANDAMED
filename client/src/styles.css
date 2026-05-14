@@ -318,19 +318,19 @@ select {
 .store-body {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
-  padding: 10px 14px 0;
+  gap: 8px;
+  padding: 8px 12px 0;
   background: transparent;
 }
 
 .store-hero {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .store-hero-visual {
   width: 100%;
-  height: min(44vh, 440px);
+  height: min(34vh, 320px);
   border-radius: 34px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.16)),
@@ -349,9 +349,9 @@ select {
 }
 
 .hero-start-button {
-  min-height: 56px;
-  min-width: 220px;
-  padding: 0 28px;
+  min-height: 52px;
+  min-width: 210px;
+  padding: 0 24px;
   border-radius: 18px;
   background: linear-gradient(180deg, #2e7ae2 0%, #1f5fb2 55%, #163f7f 100%);
   box-shadow:
@@ -364,14 +364,14 @@ select {
 .hero-bottom-actions {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .hero-bottom-button {
-  min-width: 220px;
-  min-height: 58px;
-  padding: 0 24px;
+  min-width: 210px;
+  min-height: 52px;
+  padding: 0 22px;
   border-radius: 18px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
@@ -1558,14 +1558,14 @@ select {
   }
 
   .store-hero {
-    gap: 12px !important;
+    gap: 8px !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
   .store-hero-visual {
     width: 100%;
-    height: min(24vh, 220px);
+    height: min(22vh, 180px);
     border-radius: 20px;
     background-position: center top;
   }
@@ -1580,7 +1580,7 @@ select {
   }
 
   .hero-bottom-actions {
-    gap: 8px;
+    gap: 6px;
   }
 
   .filters-panel {
