@@ -2265,6 +2265,10 @@ function AdminApp({ onLogout }) {
   async function reviewSettingItem(group, rowId, action) {
     setSettingsBusy(true);
     setError("");
+    const popupHandle =
+      action === "approve" && typeof window !== "undefined"
+        ? window.open("", "_blank", "noopener,noreferrer")
+        : null;
     try {
       const approvedRow =
         group === "driver-applications"
@@ -2286,8 +2290,8 @@ function AdminApp({ onLogout }) {
       const fallbackPhone = String(approvedRow?.whatsapp ?? approvedRow?.phone ?? "").replace(/\D/g, "");
       const fallbackUrl = fallbackPhone ? `https://wa.me/${fallbackPhone}?text=${encodeURIComponent(fallbackMessage.trim())}` : "";
       const whatsappUrl = result?.whatsapp?.url || fallbackUrl;
-      if (action === "approve" && whatsappUrl && typeof window !== "undefined") {
-        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      if (action === "approve" && whatsappUrl && popupHandle) {
+        popupHandle.location.replace(whatsappUrl);
       }
       setSettingsData((current) => {
         const nextStatus = action === "approve" ? "approved" : "rejected";
@@ -2310,9 +2314,11 @@ function AdminApp({ onLogout }) {
         return current;
       });
       if (action === "approve" && !whatsappUrl) {
+        popupHandle?.close();
         setError("Validation effectuee, mais aucun lien WhatsApp n'a pu etre genere.");
       }
     } catch (reviewError) {
+      popupHandle?.close();
       const groupLabel =
         group === "pharmacy-applications"
           ? "la demande pharmacie"
