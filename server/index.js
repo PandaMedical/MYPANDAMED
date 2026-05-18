@@ -1541,9 +1541,9 @@ app.get("/api/settings/overview", async (_req, res, next) => {
     await seedWhatsappSettings().catch(() => {});
 
     const settled = await Promise.allSettled([
-      all("SELECT * FROM driver_applications ORDER BY created_at DESC"),
-      all("SELECT * FROM pharmacy_applications ORDER BY created_at DESC"),
-      all("SELECT * FROM patient_registrations ORDER BY created_at DESC"),
+      all("SELECT * FROM driver_applications WHERE status = 'pending' ORDER BY created_at DESC LIMIT 50"),
+      all("SELECT * FROM pharmacy_applications WHERE status = 'pending' ORDER BY created_at DESC LIMIT 50"),
+      all("SELECT * FROM patient_registrations WHERE status = 'pending' ORDER BY created_at DESC LIMIT 50"),
       get("SELECT * FROM whatsapp_settings WHERE id = 1"),
       all("SELECT * FROM whatsapp_message_logs ORDER BY created_at DESC LIMIT 20")
     ]);
@@ -1560,6 +1560,23 @@ app.get("/api/settings/overview", async (_req, res, next) => {
       patientRegistrations,
       whatsappSettings,
       whatsappLogs
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/settings/purge-reviewed-applications", async (_req, res, next) => {
+  try {
+    const deletedDriverApplications = await run("DELETE FROM driver_applications WHERE status IN ('approved', 'rejected')");
+    const deletedPharmacyApplications = await run("DELETE FROM pharmacy_applications WHERE status IN ('approved', 'rejected')");
+
+    res.json({
+      ok: true,
+      deleted: {
+        driverApplications: deletedDriverApplications.rowCount ?? deletedDriverApplications.changes ?? 0,
+        pharmacyApplications: deletedPharmacyApplications.rowCount ?? deletedPharmacyApplications.changes ?? 0
+      }
     });
   } catch (error) {
     next(error);
