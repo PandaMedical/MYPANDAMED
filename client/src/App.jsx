@@ -2266,11 +2266,26 @@ function AdminApp({ onLogout }) {
     setSettingsBusy(true);
     setError("");
     try {
+      const approvedRow =
+        group === "driver-applications"
+          ? (settingsData.driverApplications ?? []).find((row) => String(row.id) === String(rowId))
+          : group === "pharmacy-applications"
+            ? (settingsData.pharmacyApplications ?? []).find((row) => String(row.id) === String(rowId))
+            : (settingsData.patientRegistrations ?? []).find((row) => String(row.id) === String(rowId));
+
       const result = await request("/settings/review", {
         method: "POST",
         body: JSON.stringify({ group, rowId, action })
       });
-      const whatsappUrl = result?.whatsapp?.url;
+      const fallbackMessage =
+        group === "driver-applications"
+          ? `Bonjour ${(approvedRow?.first_name ?? "").trim()} ${(approvedRow?.last_name ?? "").trim()}, votre candidature livreur PandaMed a ete acceptee. Vous pouvez maintenant commencer a recevoir des missions de livraison.`
+          : group === "pharmacy-applications"
+            ? `Bonjour ${String(approvedRow?.pharmacy_name ?? approvedRow?.manager_name ?? "").trim()}, votre pharmacie a ete acceptee sur PandaMed. Vous allez maintenant commencer a recevoir des commandes.`
+            : `Bonjour ${(approvedRow?.first_name ?? "").trim()} ${(approvedRow?.last_name ?? "").trim()}, votre compte patient PandaMed a ete valide. Vous pouvez maintenant passer vos commandes.`;
+      const fallbackPhone = String(approvedRow?.whatsapp ?? approvedRow?.phone ?? "").replace(/\D/g, "");
+      const fallbackUrl = fallbackPhone ? `https://wa.me/${fallbackPhone}?text=${encodeURIComponent(fallbackMessage.trim())}` : "";
+      const whatsappUrl = result?.whatsapp?.url || fallbackUrl;
       if (action === "approve" && whatsappUrl && typeof window !== "undefined") {
         window.open(whatsappUrl, "_blank", "noopener,noreferrer");
       }
