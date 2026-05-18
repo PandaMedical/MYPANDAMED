@@ -1025,6 +1025,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   const [therapeuticClass, setTherapeuticClass] = useState("all");
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [cartError, setCartError] = useState("");
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
   const [checkoutPharmacies, setCheckoutPharmacies] = useState([]);
@@ -1148,15 +1149,17 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
   function clearCart() {
     setCart([]);
+    setCartError("");
   }
 
   async function openCheckoutModal() {
     if (!cartItems.length) {
-      setPageError("Votre panier est vide.");
+      setCartError("Votre panier est vide.");
       return;
     }
 
     if (!currentUser) {
+      setCartError("");
       setCartOpen(false);
       setAuthTab("login");
       setAuthError("");
@@ -1167,14 +1170,17 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     }
 
     if (currentUser.role !== "patient") {
-      setPageError("Seul un compte patient peut passer une commande depuis le panier.");
+      setCartError("Seul un compte patient peut passer une commande depuis le panier.");
       return;
     }
 
     try {
-      setPageError("");
+      setCartError("");
       const pharmacies = await request("/pharmacies");
       const activePharmacies = pharmacies.filter((item) => String(item.status ?? "").toLowerCase() !== "offline");
+      if (!activePharmacies.length) {
+        throw new Error("Aucune pharmacie n'est disponible pour le moment.");
+      }
       setCheckoutPharmacies(activePharmacies);
       setCheckoutForm((current) => ({
         ...current,
@@ -1186,18 +1192,18 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       setCartOpen(false);
       setCheckoutModalOpen(true);
     } catch (error) {
-      setPageError(error.message);
+      setCartError(error.message);
     }
   }
 
   async function submitCartOrder() {
     if (!cartItems.length) {
-      setPageError("Votre panier est vide.");
+      setCartError("Votre panier est vide.");
       return;
     }
 
     setCheckoutSubmitting(true);
-    setPageError("");
+    setCartError("");
 
     try {
       const patientSpace = await request(`/patient-space/${currentUser.id}`);
@@ -1245,7 +1251,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       }
       onLogin({ ...currentUser, redirectPath: "/patient" });
     } catch (checkoutError) {
-      setPageError(checkoutError.message);
+      setCartError(checkoutError.message);
     } finally {
       setCheckoutSubmitting(false);
     }
@@ -1501,16 +1507,23 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       </footer>
 
       {cartOpen ? (
-        <div className="modal-overlay" onClick={() => setCartOpen(false)}>
+        <div className="modal-overlay" onClick={() => {
+          setCartOpen(false);
+          setCartError("");
+        }}>
           <div className="cart-modal" onClick={(event) => event.stopPropagation()}>
             <div className="cart-modal-head">
               <h2>Mon panier</h2>
-              <button type="button" className="modal-close" onClick={() => setCartOpen(false)}>
+              <button type="button" className="modal-close" onClick={() => {
+                setCartOpen(false);
+                setCartError("");
+              }}>
                 Ã—
               </button>
             </div>
 
             <div className="cart-modal-body">
+              {cartError ? <div className="error-banner cart-error-banner">{cartError}</div> : null}
               {cartItems.length ? (
                 <>
                   <div className="cart-items-list">
@@ -1561,16 +1574,23 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       ) : null}
 
       {checkoutModalOpen ? (
-        <div className="modal-overlay" onClick={() => setCheckoutModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => {
+          setCheckoutModalOpen(false);
+          setCartError("");
+        }}>
           <div className="cart-modal checkout-modal" onClick={(event) => event.stopPropagation()}>
             <div className="cart-modal-head">
               <h2>Valider la commande</h2>
-              <button type="button" className="modal-close" onClick={() => setCheckoutModalOpen(false)}>
+              <button type="button" className="modal-close" onClick={() => {
+                setCheckoutModalOpen(false);
+                setCartError("");
+              }}>
                 Ã—
               </button>
             </div>
 
             <div className="cart-modal-body checkout-body">
+              {cartError ? <div className="error-banner cart-error-banner">{cartError}</div> : null}
               <label className="checkout-field">
                 <span>Choix pharmacie</span>
                 <select value={checkoutForm.pharmacy_id} onChange={(event) => updateCheckoutField("pharmacy_id", event.target.value)}>
