@@ -2266,10 +2266,14 @@ function AdminApp({ onLogout }) {
     setSettingsBusy(true);
     setError("");
     try {
-      await request("/settings/review", {
+      const result = await request("/settings/review", {
         method: "POST",
         body: JSON.stringify({ group, rowId, action })
       });
+      const whatsappUrl = result?.whatsapp?.url;
+      if (action === "approve" && whatsappUrl && typeof window !== "undefined") {
+        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      }
       setSettingsData((current) => {
         const nextStatus = action === "approve" ? "approved" : "rejected";
         const updateOrRemoveRows = (rows) =>
@@ -2290,6 +2294,9 @@ function AdminApp({ onLogout }) {
         }
         return current;
       });
+      if (action === "approve" && !whatsappUrl) {
+        setError("Validation effectuee, mais aucun lien WhatsApp n'a pu etre genere.");
+      }
     } catch (reviewError) {
       const groupLabel =
         group === "pharmacy-applications"
@@ -2790,6 +2797,7 @@ function AdminApp({ onLogout }) {
                         📍
                       </button>
                       <button type="button" className="admin-table-button" onClick={() => openAdminModal("drivers", row)} title="Modifier" aria-label="Modifier le livreur">✎</button>
+                      <button type="button" className="admin-danger-button" onClick={() => quickDeleteEntity("drivers", row.id)} title="Supprimer" aria-label="Supprimer le livreur">🗑</button>
                     </div>
                   </td>
                 </tr>

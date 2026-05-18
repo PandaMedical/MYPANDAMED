@@ -1112,17 +1112,21 @@ function buildApprovalWhatsappMessage(kind, record) {
   const recipientPhone = String(record.whatsapp ?? record.phone ?? "").trim();
   if (!recipientPhone) return null;
 
+  const recipient = recipientPhone.replace(/\D/g, "");
+
   return {
     recipientPhone,
     actionKey: `approval_${kind}`,
-    messageBody: template.replaceAll("{{full_name}}", fullName || "cher client")
+    messageBody: template.replaceAll("{{full_name}}", fullName || "cher client"),
+    url: recipient ? `https://wa.me/${recipient}?text=${encodeURIComponent(template.replaceAll("{{full_name}}", fullName || "cher client"))}` : null
   };
 }
 
 async function notifyApprovalByWhatsapp(kind, record) {
   const payload = buildApprovalWhatsappMessage(kind, record);
   if (!payload) return { ok: false, reason: "missing_payload" };
-  return sendWhatsappTextMessage(payload);
+  const result = await sendWhatsappTextMessage(payload);
+  return { ...result, url: payload.url, recipientPhone: payload.recipientPhone, messageBody: payload.messageBody };
 }
 
 function sanitizeAuthUser(role, row) {
@@ -1657,8 +1661,8 @@ app.post("/api/settings/driver-applications/:id/approve", async (req, res, next)
       );
     }
     await run("UPDATE driver_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
-    await notifyApprovalByWhatsapp("driver", application).catch(() => {});
-    res.json({ ok: true, status: "approved" });
+    const whatsapp = await notifyApprovalByWhatsapp("driver", application).catch(() => null);
+    res.json({ ok: true, status: "approved", whatsapp });
   } catch (error) {
     next(error);
   }
@@ -1731,7 +1735,8 @@ app.post("/api/settings/review", async (req, res, next) => {
             );
           }
           await run("UPDATE driver_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
-          await notifyApprovalByWhatsapp("driver", application).catch(() => {});
+          const whatsapp = await notifyApprovalByWhatsapp("driver", application).catch(() => null);
+          return res.json({ ok: true, status: "approved", whatsapp });
         }
         return res.json({ ok: true, status: "approved" });
       }
@@ -1792,7 +1797,8 @@ app.post("/api/settings/review", async (req, res, next) => {
             );
           }
           await run("UPDATE pharmacy_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
-          await notifyApprovalByWhatsapp("pharmacy", application).catch(() => {});
+          const whatsapp = await notifyApprovalByWhatsapp("pharmacy", application).catch(() => null);
+          return res.json({ ok: true, status: "approved", whatsapp });
         }
         return res.json({ ok: true, status: "approved" });
       }
@@ -1858,7 +1864,8 @@ app.post("/api/settings/review", async (req, res, next) => {
             );
           }
           await run("UPDATE patient_registrations SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
-          await notifyApprovalByWhatsapp("patient", registration).catch(() => {});
+          const whatsapp = await notifyApprovalByWhatsapp("patient", registration).catch(() => null);
+          return res.json({ ok: true, status: "approved", whatsapp });
         }
         return res.json({ ok: true, status: "approved" });
       }
@@ -1926,8 +1933,8 @@ app.post("/api/settings/pharmacy-applications/:id/approve", async (req, res, nex
       );
     }
     await run("UPDATE pharmacy_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
-    await notifyApprovalByWhatsapp("pharmacy", application).catch(() => {});
-    res.json({ ok: true, status: "approved" });
+    const whatsapp = await notifyApprovalByWhatsapp("pharmacy", application).catch(() => null);
+    res.json({ ok: true, status: "approved", whatsapp });
   } catch (error) {
     next(error);
   }
@@ -1999,8 +2006,8 @@ app.post("/api/settings/patient-registrations/:id/approve", async (req, res, nex
       );
     }
     await run("UPDATE patient_registrations SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
-    await notifyApprovalByWhatsapp("patient", registration).catch(() => {});
-    res.json({ ok: true, status: "approved" });
+    const whatsapp = await notifyApprovalByWhatsapp("patient", registration).catch(() => null);
+    res.json({ ok: true, status: "approved", whatsapp });
   } catch (error) {
     next(error);
   }
