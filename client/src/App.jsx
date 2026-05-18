@@ -1158,19 +1158,14 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       return;
     }
 
-    if (!currentUser) {
+    if (!currentUser || currentUser.role !== "patient") {
       setCartError("");
       setCartOpen(false);
       setAuthTab("login");
       setAuthError("");
-      setAuthFeedback("Connectez-vous ou inscrivez-vous comme patient pour finaliser la commande.");
+      setAuthFeedback("Connectez-vous ou inscrivez-vous avec un compte patient pour finaliser la commande.");
       setAuthFeedbackType("info");
       openLoginModal();
-      return;
-    }
-
-    if (currentUser.role !== "patient") {
-      setCartError("Seul un compte patient peut passer une commande depuis le panier.");
       return;
     }
 
@@ -1364,10 +1359,10 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   }
 
   function handleCartClick() {
-    if (!currentUser) {
+    if (!currentUser || currentUser.role !== "patient") {
       setAuthTab("login");
       setAuthError("");
-      setAuthFeedback("Connectez-vous ou inscrivez-vous pour acceder a votre panier.");
+      setAuthFeedback("Connectez-vous ou inscrivez-vous avec un compte patient pour acceder a votre panier.");
       setAuthFeedbackType("info");
       openLoginModal();
       return;

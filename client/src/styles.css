@@ -337,7 +337,7 @@ select {
   border-radius: 34px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.16)),
-    #ffffff url("/home-business-model.png") center center/100% 100% no-repeat;
+    #ffffff url("/home-business-model-pc.png") center center/100% 100% no-repeat;
   box-shadow: 0 24px 52px rgba(5, 16, 42, 0.18);
   overflow: hidden;
 }
@@ -1584,7 +1584,9 @@ select {
     height: 100%;
     min-height: 0;
     border-radius: 20px;
-    background-position: center center;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.16)),
+      #ffffff url("/home-business-model-smart.png") center center/100% 100% no-repeat;
   }
 
   .hero-start-button,
