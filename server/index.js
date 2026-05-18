@@ -347,6 +347,12 @@ const defaultWhatsappTemplates = {
   mission_livreur: "Bonjour, une nouvelle mission de livraison vous a ete affectee."
 };
 
+const defaultApprovalWhatsappTemplates = {
+  driver: "Bonjour {{full_name}}, votre candidature livreur PandaMed a ete acceptee. Vous pouvez maintenant commencer a recevoir des missions de livraison.",
+  pharmacy: "Bonjour {{full_name}}, votre pharmacie a ete acceptee sur PandaMed. Vous allez maintenant commencer a recevoir des commandes.",
+  patient: "Bonjour {{full_name}}, votre compte patient PandaMed a ete valide. Vous pouvez maintenant passer vos commandes."
+};
+
 const entityConfig = {
   patients: {
     table: "patients",
@@ -1033,6 +1039,92 @@ async function logWhatsappMessage({ orderId = null, recipientPhone, actionKey, m
   );
 }
 
+async function sendWhatsappTextMessage({ recipientPhone, actionKey, messageBody, orderId = null }) {
+  const recipient = String(recipientPhone ?? "").replace(/\D/g, "");
+  if (!recipient || !messageBody) {
+    return { ok: false, reason: "missing_recipient_or_message" };
+  }
+
+  const settings = await get("SELECT * FROM whatsapp_settings WHERE id = 1");
+  const apiToken = String(settings?.api_token ?? "").trim();
+  const phoneNumberId = String(settings?.phone_number_id ?? "").trim();
+  const apiVersion = String(settings?.api_version ?? "v23.0").trim();
+
+  if (!apiToken || !phoneNumberId) {
+    await logWhatsappMessage({
+      orderId,
+      recipientPhone: recipient,
+      actionKey,
+      messageBody,
+      deliveryStatus: "configuration_missing"
+    });
+    return { ok: false, reason: "configuration_missing" };
+  }
+
+  const response = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: recipient,
+      type: "text",
+      text: {
+        preview_url: false,
+        body: messageBody
+      }
+    })
+  });
+
+  const responseBody = await response.json().catch(() => ({}));
+  const providerMessageId = responseBody?.messages?.[0]?.id ?? null;
+
+  await logWhatsappMessage({
+    orderId,
+    recipientPhone: recipient,
+    actionKey,
+    messageBody,
+    deliveryStatus: response.ok ? "sent" : "error",
+    providerMessageId,
+    responseBody
+  });
+
+  if (!response.ok) {
+    return { ok: false, reason: responseBody?.error?.message ?? "send_failed", response: responseBody };
+  }
+
+  return { ok: true, providerMessageId, response: responseBody };
+}
+
+function buildApprovalWhatsappMessage(kind, record) {
+  const templates = defaultApprovalWhatsappTemplates;
+  const template = templates[kind];
+  if (!template || !record) return null;
+
+  const fullName =
+    kind === "pharmacy"
+      ? String(record.pharmacy_name ?? record.name ?? record.manager_name ?? "").trim()
+      : `${String(record.first_name ?? "").trim()} ${String(record.last_name ?? "").trim()}`.trim();
+
+  const recipientPhone = String(record.whatsapp ?? record.phone ?? "").trim();
+  if (!recipientPhone) return null;
+
+  return {
+    recipientPhone,
+    actionKey: `approval_${kind}`,
+    messageBody: template.replaceAll("{{full_name}}", fullName || "cher client")
+  };
+}
+
+async function notifyApprovalByWhatsapp(kind, record) {
+  const payload = buildApprovalWhatsappMessage(kind, record);
+  if (!payload) return { ok: false, reason: "missing_payload" };
+  return sendWhatsappTextMessage(payload);
+}
+
 function sanitizeAuthUser(role, row) {
   if (!row) return null;
   if (role === "admin" || role === "operateur") {
@@ -1548,6 +1640,7 @@ app.post("/api/settings/driver-applications/:id/approve", async (req, res, next)
       );
     }
     await run("UPDATE driver_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
+    await notifyApprovalByWhatsapp("driver", application).catch(() => {});
     res.json({ ok: true, status: "approved" });
   } catch (error) {
     next(error);
@@ -1621,6 +1714,7 @@ app.post("/api/settings/review", async (req, res, next) => {
             );
           }
           await run("UPDATE driver_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+          await notifyApprovalByWhatsapp("driver", application).catch(() => {});
         }
         return res.json({ ok: true, status: "approved" });
       }
@@ -1681,6 +1775,7 @@ app.post("/api/settings/review", async (req, res, next) => {
             );
           }
           await run("UPDATE pharmacy_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+          await notifyApprovalByWhatsapp("pharmacy", application).catch(() => {});
         }
         return res.json({ ok: true, status: "approved" });
       }
@@ -1746,6 +1841,7 @@ app.post("/api/settings/review", async (req, res, next) => {
             );
           }
           await run("UPDATE patient_registrations SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [rowId]);
+          await notifyApprovalByWhatsapp("patient", registration).catch(() => {});
         }
         return res.json({ ok: true, status: "approved" });
       }
@@ -1813,6 +1909,7 @@ app.post("/api/settings/pharmacy-applications/:id/approve", async (req, res, nex
       );
     }
     await run("UPDATE pharmacy_applications SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
+    await notifyApprovalByWhatsapp("pharmacy", application).catch(() => {});
     res.json({ ok: true, status: "approved" });
   } catch (error) {
     next(error);
@@ -1885,6 +1982,7 @@ app.post("/api/settings/patient-registrations/:id/approve", async (req, res, nex
       );
     }
     await run("UPDATE patient_registrations SET status = 'approved', reviewed_at = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
+    await notifyApprovalByWhatsapp("patient", registration).catch(() => {});
     res.json({ ok: true, status: "approved" });
   } catch (error) {
     next(error);
