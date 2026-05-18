@@ -1363,6 +1363,20 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     setShowRegisterConfirmPassword(false);
   }
 
+  function handleCartClick() {
+    if (!currentUser) {
+      setAuthTab("login");
+      setAuthError("");
+      setAuthFeedback("Connectez-vous ou inscrivez-vous pour acceder a votre panier.");
+      setAuthFeedbackType("info");
+      openLoginModal();
+      return;
+    }
+
+    setCartError("");
+    setCartOpen(true);
+  }
+
   function switchAuthTab(nextTab) {
     setAuthTab(nextTab);
     setAuthError("");
@@ -1442,7 +1456,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
               Deconnexion
             </button>
           ) : null}
-          <button type="button" className="cart-button" title="Chariot des commandes" aria-label="Chariot des commandes" onClick={() => setCartOpen(true)}>
+          <button type="button" className="cart-button" title="Chariot des commandes" aria-label="Chariot des commandes" onClick={handleCartClick}>
             <span>Panier</span>
             <strong>{cartCount}</strong>
           </button>
