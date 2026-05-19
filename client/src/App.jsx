@@ -2275,11 +2275,11 @@ function AdminApp({ onLogout }) {
     const directPhone = String(row?.whatsapp ?? row?.phone ?? "").replace(/\D/g, "");
     const directUrl =
       action === "approve" && directPhone
-        ? `https://web.whatsapp.com/send?phone=${directPhone}&text=${encodeURIComponent(directMessage.trim())}`
+        ? `https://wa.me/${directPhone}?text=${encodeURIComponent(directMessage.trim())}`
         : "";
     const popupHandle =
-      action === "approve" && typeof window !== "undefined"
-        ? window.open(directUrl || "about:blank", "_blank")
+      action === "approve" && directUrl && typeof window !== "undefined"
+        ? window.open(directUrl, "_blank")
         : null;
     try {
       const result = await request("/settings/review", {
@@ -2287,8 +2287,8 @@ function AdminApp({ onLogout }) {
         body: JSON.stringify({ group, rowId, action })
       });
       const whatsappUrl = result?.whatsapp?.url || directUrl;
-      if (action === "approve" && whatsappUrl && popupHandle && popupHandle.location.href === "about:blank") {
-        popupHandle.location.href = whatsappUrl;
+      if (action === "approve" && whatsappUrl && !popupHandle && typeof window !== "undefined") {
+        window.open(whatsappUrl, "_blank");
       }
       setSettingsData((current) => {
         const nextStatus = action === "approve" ? "approved" : "rejected";
@@ -2315,7 +2315,6 @@ function AdminApp({ onLogout }) {
         setError("Validation effectuee, mais aucun numero WhatsApp exploitable n'est renseigne sur cette demande.");
       }
     } catch (reviewError) {
-      popupHandle?.close();
       const groupLabel =
         group === "pharmacy-applications"
           ? "la demande pharmacie"
