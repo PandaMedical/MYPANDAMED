@@ -1118,7 +1118,7 @@ function buildApprovalWhatsappMessage(kind, record) {
     recipientPhone,
     actionKey: `approval_${kind}`,
     messageBody: template.replaceAll("{{full_name}}", fullName || "cher client"),
-    url: recipient ? `https://wa.me/${recipient}?text=${encodeURIComponent(template.replaceAll("{{full_name}}", fullName || "cher client"))}` : null
+    url: recipient ? `https://web.whatsapp.com/send?phone=${recipient}&text=${encodeURIComponent(template.replaceAll("{{full_name}}", fullName || "cher client"))}` : null
   };
 }
 

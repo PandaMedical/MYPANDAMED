@@ -2267,7 +2267,7 @@ function AdminApp({ onLogout }) {
     setError("");
     const popupHandle =
       action === "approve" && typeof window !== "undefined"
-        ? window.open("", "_blank", "noopener,noreferrer")
+        ? window.open("about:blank", "_blank")
         : null;
     try {
       const approvedRow =
@@ -2288,10 +2288,10 @@ function AdminApp({ onLogout }) {
             ? `Bonjour ${String(approvedRow?.pharmacy_name ?? approvedRow?.manager_name ?? "").trim()}, votre pharmacie a ete acceptee sur PandaMed. Vous allez maintenant commencer a recevoir des commandes.`
             : `Bonjour ${(approvedRow?.first_name ?? "").trim()} ${(approvedRow?.last_name ?? "").trim()}, votre compte patient PandaMed a ete valide. Vous pouvez maintenant passer vos commandes.`;
       const fallbackPhone = String(approvedRow?.whatsapp ?? approvedRow?.phone ?? "").replace(/\D/g, "");
-      const fallbackUrl = fallbackPhone ? `https://wa.me/${fallbackPhone}?text=${encodeURIComponent(fallbackMessage.trim())}` : "";
+      const fallbackUrl = fallbackPhone ? `https://web.whatsapp.com/send?phone=${fallbackPhone}&text=${encodeURIComponent(fallbackMessage.trim())}` : "";
       const whatsappUrl = result?.whatsapp?.url || fallbackUrl;
       if (action === "approve" && whatsappUrl && popupHandle) {
-        popupHandle.location.replace(whatsappUrl);
+        popupHandle.location.href = whatsappUrl;
       }
       setSettingsData((current) => {
         const nextStatus = action === "approve" ? "approved" : "rejected";
