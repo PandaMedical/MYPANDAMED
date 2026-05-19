@@ -1202,8 +1202,10 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
     setCartError("");
 
     try {
-      const patientSpace = await request(`/patient-space/${currentUser.id}`);
-      const resolvedPatientId = patientSpace?.patient?.id ?? currentUser.id;
+      const resolvedPatientId = Number(currentUser?.id ?? 0);
+      if (!resolvedPatientId) {
+        throw new Error("Session patient invalide. Reconnectez-vous puis reessayez.");
+      }
 
       if (!checkoutForm.pharmacy_id) {
         throw new Error("Choisissez une pharmacie pour finaliser la commande.");
