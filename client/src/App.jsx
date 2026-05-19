@@ -1050,6 +1050,7 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginForm, setLoginForm] = useState(emptyLoginForm);
   const [registerForm, setRegisterForm] = useState(emptyRegisterForm);
+  const [authFormVersion, setAuthFormVersion] = useState(0);
   const [authTab, setAuthTab] = useState("login");
   const [loginSubmitting, setLoginSubmitting] = useState(false);
   const [registerSubmitting, setRegisterSubmitting] = useState(false);
@@ -1343,14 +1344,23 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
   }
 
   function openLoginModal() {
+    setLoginForm(emptyLoginForm);
+    setRegisterForm(emptyRegisterForm);
+    setAuthFormVersion((current) => current + 1);
     setAuthError("");
     setAuthFeedback("");
     setAuthTab("login");
+    setShowLoginPassword(false);
+    setShowRegisterPassword(false);
+    setShowRegisterConfirmPassword(false);
     setLoginModalOpen(true);
   }
 
   function closeLoginModal() {
     setLoginModalOpen(false);
+    setLoginForm(emptyLoginForm);
+    setRegisterForm(emptyRegisterForm);
+    setAuthFormVersion((current) => current + 1);
     setAuthError("");
     setAuthFeedback("");
     setShowLoginPassword(false);
@@ -1374,8 +1384,17 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
 
   function switchAuthTab(nextTab) {
     setAuthTab(nextTab);
+    setAuthFormVersion((current) => current + 1);
     setAuthError("");
     setAuthFeedback("");
+    if (nextTab === "login") {
+      setLoginForm(emptyLoginForm);
+      setShowLoginPassword(false);
+    } else {
+      setRegisterForm(emptyRegisterForm);
+      setShowRegisterPassword(false);
+      setShowRegisterConfirmPassword(false);
+    }
   }
 
   async function submitRegister(event) {
@@ -1838,10 +1857,10 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
             </div>
 
             {authTab === "login" ? (
-              <form className="login-form" onSubmit={submitLogin}>
+              <form key={`login-${authFormVersion}`} className="login-form" onSubmit={submitLogin} autoComplete="off">
                 <label>
                   <span>Numero de telephone ou email</span>
-                  <input value={loginForm.identifier} onChange={(event) => setLoginForm((current) => ({ ...current, identifier: event.target.value }))} placeholder="0555 123 456" />
+                  <input name="login_identifier" autoComplete="off" value={loginForm.identifier} onChange={(event) => setLoginForm((current) => ({ ...current, identifier: event.target.value }))} placeholder="" />
                 </label>
                 <label>
                   <span>Mot de passe</span>
@@ -1857,28 +1876,28 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
                 </button>
               </form>
             ) : (
-              <form className="login-form register-form" onSubmit={submitRegister}>
+              <form key={`register-${authFormVersion}`} className="login-form register-form" onSubmit={submitRegister} autoComplete="off">
                 <div className="driver-grid-form">
                   <label>
                     <span>Prenom</span>
-                    <input value={registerForm.first_name} onChange={(event) => updateRegisterField("first_name", event.target.value)} placeholder="Amira" />
+                    <input name="register_first_name" autoComplete="off" value={registerForm.first_name} onChange={(event) => updateRegisterField("first_name", event.target.value)} placeholder="" />
                   </label>
                   <label>
                     <span>Nom</span>
-                    <input value={registerForm.last_name} onChange={(event) => updateRegisterField("last_name", event.target.value)} placeholder="Merakchi" />
+                    <input name="register_last_name" autoComplete="off" value={registerForm.last_name} onChange={(event) => updateRegisterField("last_name", event.target.value)} placeholder="" />
                   </label>
                 </div>
                 <label>
                   <span>Telephone</span>
-                  <input value={registerForm.phone} onChange={(event) => updateRegisterField("phone", event.target.value)} placeholder="0555 123 456" />
+                  <input name="register_phone" autoComplete="off" value={registerForm.phone} onChange={(event) => updateRegisterField("phone", event.target.value)} placeholder="" />
                 </label>
                 <label>
                   <span>Email</span>
-                  <input value={registerForm.email} onChange={(event) => updateRegisterField("email", event.target.value)} placeholder="votre@email.dz" />
+                  <input name="register_email" autoComplete="off" value={registerForm.email} onChange={(event) => updateRegisterField("email", event.target.value)} placeholder="" />
                 </label>
                 <label>
                   <span>Adresse</span>
-                  <input value={registerForm.address} onChange={(event) => updateRegisterField("address", event.target.value)} placeholder="12 Rue Didouche Mourad, Annaba" />
+                  <input name="register_address" autoComplete="off" value={registerForm.address} onChange={(event) => updateRegisterField("address", event.target.value)} placeholder="" />
                 </label>
                 <label>
                   <span>Mot de passe</span>
