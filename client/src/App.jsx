@@ -1334,7 +1334,8 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       .then(({ user }) => {
         onLogin(user);
         setLoginModalOpen(false);
-        window.history.pushState({}, "", user.redirectPath);
+        const nextPath = user?.role === "patient" ? "/" : user.redirectPath;
+        window.history.pushState({}, "", nextPath);
         window.dispatchEvent(new Event("popstate"));
       })
       .catch((loginError) => setAuthError(loginError.message))
@@ -1425,7 +1426,8 @@ function StorefrontApp({ currentUser, onLogin, onLogout }) {
       setAuthFeedback(result.message);
       onLogin(result.user);
       setLoginModalOpen(false);
-      window.history.pushState({}, "", result.user?.redirectPath ?? "/patient");
+      const nextPath = result.user?.role === "patient" ? "/" : result.user?.redirectPath ?? "/patient";
+      window.history.pushState({}, "", nextPath);
       window.dispatchEvent(new Event("popstate"));
     } catch (registerError) {
       setAuthError(registerError.message);
