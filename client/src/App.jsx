@@ -2262,35 +2262,32 @@ function AdminApp({ onLogout }) {
     }
   }
 
-  async function reviewSettingItem(group, rowId, action) {
+  async function reviewSettingItem(group, row, action) {
     setSettingsBusy(true);
     setError("");
+    const rowId = row?.id;
+    const directMessage =
+      group === "driver-applications"
+        ? `Bonjour ${String(row?.first_name ?? "").trim()} ${String(row?.last_name ?? "").trim()}, votre candidature livreur MyPandMed a ete validee. Vous pouvez maintenant commencer a recevoir des missions de livraison.`
+        : group === "pharmacy-applications"
+          ? `Bonjour ${String(row?.pharmacy_name ?? row?.manager_name ?? "").trim()}, votre pharmacie a ete validee par MyPandMed. Vous allez maintenant commencer a recevoir des commandes.`
+          : `Bonjour ${String(row?.first_name ?? "").trim()} ${String(row?.last_name ?? "").trim()}, votre compte patient MyPandMed a ete valide. Vous pouvez maintenant passer vos commandes.`;
+    const directPhone = String(row?.whatsapp ?? row?.phone ?? "").replace(/\D/g, "");
+    const directUrl =
+      action === "approve" && directPhone
+        ? `https://web.whatsapp.com/send?phone=${directPhone}&text=${encodeURIComponent(directMessage.trim())}`
+        : "";
     const popupHandle =
       action === "approve" && typeof window !== "undefined"
-        ? window.open("about:blank", "_blank")
+        ? window.open(directUrl || "about:blank", "_blank")
         : null;
     try {
-      const approvedRow =
-        group === "driver-applications"
-          ? (settingsData.driverApplications ?? []).find((row) => String(row.id) === String(rowId))
-          : group === "pharmacy-applications"
-            ? (settingsData.pharmacyApplications ?? []).find((row) => String(row.id) === String(rowId))
-            : (settingsData.patientRegistrations ?? []).find((row) => String(row.id) === String(rowId));
-
       const result = await request("/settings/review", {
         method: "POST",
         body: JSON.stringify({ group, rowId, action })
       });
-      const fallbackMessage =
-        group === "driver-applications"
-          ? `Bonjour ${(approvedRow?.first_name ?? "").trim()} ${(approvedRow?.last_name ?? "").trim()}, votre candidature livreur PandaMed a ete acceptee. Vous pouvez maintenant commencer a recevoir des missions de livraison.`
-          : group === "pharmacy-applications"
-            ? `Bonjour ${String(approvedRow?.pharmacy_name ?? approvedRow?.manager_name ?? "").trim()}, votre pharmacie a ete acceptee sur PandaMed. Vous allez maintenant commencer a recevoir des commandes.`
-            : `Bonjour ${(approvedRow?.first_name ?? "").trim()} ${(approvedRow?.last_name ?? "").trim()}, votre compte patient PandaMed a ete valide. Vous pouvez maintenant passer vos commandes.`;
-      const fallbackPhone = String(approvedRow?.whatsapp ?? approvedRow?.phone ?? "").replace(/\D/g, "");
-      const fallbackUrl = fallbackPhone ? `https://web.whatsapp.com/send?phone=${fallbackPhone}&text=${encodeURIComponent(fallbackMessage.trim())}` : "";
-      const whatsappUrl = result?.whatsapp?.url || fallbackUrl;
-      if (action === "approve" && whatsappUrl && popupHandle) {
+      const whatsappUrl = result?.whatsapp?.url || directUrl;
+      if (action === "approve" && whatsappUrl && popupHandle && popupHandle.location.href === "about:blank") {
         popupHandle.location.href = whatsappUrl;
       }
       setSettingsData((current) => {
@@ -2315,7 +2312,7 @@ function AdminApp({ onLogout }) {
       });
       if (action === "approve" && !whatsappUrl) {
         popupHandle?.close();
-        setError("Validation effectuee, mais aucun lien WhatsApp n'a pu etre genere.");
+        setError("Validation effectuee, mais aucun numero WhatsApp exploitable n'est renseigne sur cette demande.");
       }
     } catch (reviewError) {
       popupHandle?.close();
@@ -2921,8 +2918,8 @@ function AdminApp({ onLogout }) {
                     <td>{getReviewStatusLabel(row.status)}</td>
                     <td>
                       <div className="admin-actions-inline">
-                        <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("driver-applications", row.id, "approve")} title="Valider" aria-label="Valider la candidature livreur" disabled={settingsBusy || row.status === "approved"}>✓</button>
-                        <button type="button" className="admin-danger-button" onClick={() => reviewSettingItem("driver-applications", row.id, "reject")} title="Refuser" aria-label="Refuser la candidature livreur" disabled={settingsBusy || row.status === "rejected"}>✕</button>
+                        <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("driver-applications", row, "approve")} title="Valider" aria-label="Valider la candidature livreur" disabled={settingsBusy || row.status === "approved"}>✓</button>
+                        <button type="button" className="admin-danger-button" onClick={() => reviewSettingItem("driver-applications", row, "reject")} title="Refuser" aria-label="Refuser la candidature livreur" disabled={settingsBusy || row.status === "rejected"}>✕</button>
                       </div>
                     </td>
                   </tr>
@@ -2946,8 +2943,8 @@ function AdminApp({ onLogout }) {
                     <td>{getReviewStatusLabel(row.status)}</td>
                     <td>
                       <div className="admin-actions-inline">
-                        <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("pharmacy-applications", row.id, "approve")} title="Valider" aria-label="Valider la pharmacie" disabled={settingsBusy || row.status === "approved"}>✓</button>
-                        <button type="button" className="admin-danger-button" onClick={() => reviewSettingItem("pharmacy-applications", row.id, "reject")} title="Refuser" aria-label="Refuser la pharmacie" disabled={settingsBusy || row.status === "rejected"}>✕</button>
+                        <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("pharmacy-applications", row, "approve")} title="Valider" aria-label="Valider la pharmacie" disabled={settingsBusy || row.status === "approved"}>✓</button>
+                        <button type="button" className="admin-danger-button" onClick={() => reviewSettingItem("pharmacy-applications", row, "reject")} title="Refuser" aria-label="Refuser la pharmacie" disabled={settingsBusy || row.status === "rejected"}>✕</button>
                       </div>
                     </td>
                   </tr>
@@ -2971,8 +2968,8 @@ function AdminApp({ onLogout }) {
                     <td>{getReviewStatusLabel(row.status)}</td>
                     <td>
                       <div className="admin-actions-inline">
-                        <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("patient-registrations", row.id, "approve")} title="Valider" aria-label="Valider le patient" disabled={settingsBusy || row.status === "approved"}>✓</button>
-                        <button type="button" className="admin-danger-button" onClick={() => reviewSettingItem("patient-registrations", row.id, "reject")} title="Refuser" aria-label="Refuser le patient" disabled={settingsBusy || row.status === "rejected"}>✕</button>
+                        <button type="button" className="admin-primary-button" onClick={() => reviewSettingItem("patient-registrations", row, "approve")} title="Valider" aria-label="Valider le patient" disabled={settingsBusy || row.status === "approved"}>✓</button>
+                        <button type="button" className="admin-danger-button" onClick={() => reviewSettingItem("patient-registrations", row, "reject")} title="Refuser" aria-label="Refuser le patient" disabled={settingsBusy || row.status === "rejected"}>✕</button>
                       </div>
                     </td>
                   </tr>
